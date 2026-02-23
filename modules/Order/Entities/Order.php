@@ -234,6 +234,7 @@ class Order extends Model
             'unit_price' => $cartItem->unitPrice()->amount(),
             'qty' => $cartItem->qty,
             'line_total' => $cartItem->totalPrice()->amount(),
+            'customer_design_file_id' => $cartItem->customerDesignFileId ?? null,
         ]);
 
         $orderProduct->storeVariations($cartItem->variations);

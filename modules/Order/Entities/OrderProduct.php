@@ -23,7 +23,7 @@ class OrderProduct extends Model
      *
      * @var array
      */
-    protected $with = ['product', 'product_variant' ,'options', 'variations'];
+    protected $with = ['product', 'product_variant' ,'options', 'variations', 'customerDesignFile'];
 
     /**
      * The attributes that aren't mass assignable.
@@ -174,5 +174,16 @@ class OrderProduct extends Model
     public function getSkuAttribute()
     {
         return $this->product_variant ? $this->product_variant->sku : $this->product->sku;
+    }
+
+
+    /**
+     * Get the customer design file for the order product.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function customerDesignFile()
+    {
+        return $this->belongsTo(\Modules\Media\Entities\File::class, 'customer_design_file_id');
     }
 }

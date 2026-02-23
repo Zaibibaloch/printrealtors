@@ -42,4 +42,6 @@ return [
     'coupon' => 'Coupon',
     'tax' => 'Tax',
     'total' => 'Total',
+    'customer_design' => 'Customer Design',
+    'download_design' => 'Download Design',
 ];

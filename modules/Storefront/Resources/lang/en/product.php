@@ -37,4 +37,6 @@ return [
     'related_products' => 'Related Products',
     'show_more' => 'Show More',
     'show_less' => 'Show Less',
+    'upload_your_design' => 'Upload Your Design',
+    'max_file_size_10mb' => 'Max file size: 10MB',
 ];

@@ -114,6 +114,42 @@
                 </div>
             @endif
 
+            {{-- Customer Design Upload Section --}}
+            <div class="product-variants customer-design-upload">
+                <div class="form-group">
+                    <label for="customer_design">
+                        {{ trans('storefront::product.upload_your_design') }}
+                        <span class="text-muted">({{ trans('storefront::product.max_file_size_10mb') }})</span>
+                    </label>
+                    <div class="customer-design-upload-wrapper">
+                        <input type="file" id="customer_design" name="customer_design"
+                            accept="image/*,.pdf,.ai,.eps,.psd,.cdr" class="form-control"
+                            @change="handleCustomerDesignUpload($event)" :disabled="addingToCart" />
+
+                        <div x-show="customerDesignFile" class="customer-design-preview">
+                            <div class="preview-header">
+                                <div class="file-info">
+                                    <i class="fa" :class="customerDesignPreview ? 'fa-image' : 'fa-file'"></i>
+                                    <span x-text="customerDesignFileName"></span>
+                                </div>
+                                <button type="button" class="btn-remove" @click="removeCustomerDesign"
+                                    title="Remove Design" aria-label="Remove Design">
+                                    <span
+                                        style="display: inline-block; color: #ffffff; font-size: 16px; font-weight: bold; line-height: 1;">×</span>
+                                </button>
+                            </div>
+
+                            <div x-show="customerDesignPreview" class="preview-image">
+                                <img :src="customerDesignPreview" :alt="customerDesignFileName" />
+                            </div>
+                        </div>
+
+                        <span class="help-block text-danger" x-show="errors.has('customer_design')"
+                            x-text="errors.get('customer_design')"></span>
+                    </div>
+                </div>
+            </div>
+
             <div class="details-info-middle-actions">
                 <div class="number-picker-lg">
                     <label for="qty">{{ trans('storefront::product.quantity') }}</label>

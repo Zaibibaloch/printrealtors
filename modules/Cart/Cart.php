@@ -51,11 +51,12 @@ class Cart extends DarryldecodeCart implements JsonSerializable
      * @param       $variantId
      * @param int $qty
      * @param array $options
+     * @param int|null $customerDesignFileId
      *
      * @return void
      * @throws InvalidItemException
      */
-    public function store($productId, $variantId, $qty, $options = []): void
+    public function store($productId, $variantId, $qty, $options = [], $customerDesignFileId = null): void
     {
         $options = array_filter($options);
         $variations = [];
@@ -81,7 +82,7 @@ class Cart extends DarryldecodeCart implements JsonSerializable
         $chosenOptions = new ChosenProductOptions($product, $options);
 
         $this->add([
-            'id' => md5("product_id.{$productId}.variant_id.{$variantId}:options." . serialize($options)),
+            'id' => md5("product_id.{$productId}.variant_id.{$variantId}:options." . serialize($options) . ":design.{$customerDesignFileId}"),
             'name' => $product->name,
             'price' => $item->selling_price->amount(),
             'quantity' => (int)$qty,
@@ -91,6 +92,7 @@ class Cart extends DarryldecodeCart implements JsonSerializable
                 'item' => $item,
                 'variations' => $chosenVariations->getEntities(),
                 'options' => $chosenOptions->getEntities(),
+                'customer_design_file_id' => $customerDesignFileId,
                 'created_at' => time(),
             ],
         ]);

@@ -20,6 +20,8 @@ use Modules\Cart\Http\Middleware\CheckItemStock;
 use Modules\Coupon\Checkers\ApplicableCategories;
 use Modules\Coupon\Checkers\UsageLimitPerCustomer;
 use Modules\Cart\Http\Requests\StoreCartItemRequest;
+use Modules\Media\Entities\File;
+use Illuminate\Support\Facades\Storage;
 
 class CartItemController extends Controller
 {
@@ -49,6 +51,7 @@ class CartItemController extends Controller
             $request->variant_id,
             $request->qty,
             $request->options ?? [],
+            $request->customer_design_file_id ?? null,
         );
 
         return Cart::instance();
@@ -82,5 +85,54 @@ class CartItemController extends Controller
         Cart::remove($id);
 
         return Cart::instance();
+    }
+
+
+    /**
+     * Upload customer design file.
+     *
+     * @param Request $request
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function uploadCustomerDesign(Request $request)
+    {
+        $request->validate([
+            'file' => [
+                'required',
+                'file',
+                'max:10240', // 10MB
+                function ($attribute, $value, $fail) {
+                    $allowedMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
+                    $allowedExtensions = ['ai', 'eps', 'psd', 'cdr'];
+                    
+                    $extension = strtolower($value->getClientOriginalExtension());
+                    $mime = $value->getClientMimeType();
+                    
+                    if (!in_array($mime, $allowedMimes) && !in_array($extension, $allowedExtensions)) {
+                        $fail('Invalid file type. Please upload image, PDF, AI, EPS, PSD, or CDR files.');
+                    }
+                },
+            ],
+        ]);
+
+        $file = $request->file('file');
+        $path = Storage::putFile('media/customer-designs', $file);
+
+        $uploadedFile = File::create([
+            'user_id' => auth()->id() ?? 0,
+            'disk' => config('filesystems.default'),
+            'filename' => substr($file->getClientOriginalName(), 0, 255),
+            'path' => $path,
+            'extension' => $file->guessClientExtension() ?? '',
+            'mime' => $file->getClientMimeType(),
+            'size' => $file->getSize(),
+        ]);
+
+        return response()->json([
+            'file_id' => $uploadedFile->id,
+            'filename' => $uploadedFile->filename,
+            'path' => $uploadedFile->path,
+        ]);
     }
 }

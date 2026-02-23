@@ -59,6 +59,13 @@ class CartItem implements JsonSerializable
      */
     public $variations;
 
+    /**
+     * Customer design file ID.
+     *
+     * @var int|null
+     */
+    public $customerDesignFileId;
+
 
     /**
      * @param $item
@@ -72,6 +79,7 @@ class CartItem implements JsonSerializable
         $this->item = $item->attributes['item'];
         $this->variations = $item->attributes['variations'];
         $this->options = $item->attributes['options'];
+        $this->customerDesignFileId = $item->attributes['customer_design_file_id'] ?? null;
     }
 
 

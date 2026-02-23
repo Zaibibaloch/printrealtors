@@ -36,7 +36,12 @@ Alpine.data(
             qty: 1,
             variations: {},
             options: {},
+            customer_design_file_id: null,
         },
+        customerDesignFile: null,
+        customerDesignFileName: null,
+        customerDesignPreview: null,
+        customerDesignFileId: null,
         errors: new Errors(),
 
         get productName() {
@@ -834,6 +839,78 @@ Alpine.data(
 
         toggleDescriptionContent() {
             this.showDescriptionContent = !this.showDescriptionContent;
+        },
+
+        async handleCustomerDesignUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Check file size (10MB = 10485760 bytes)
+            if (file.size > 10485760) {
+                notify("File size must be less than 10MB", { type: "error" });
+                event.target.value = "";
+                return;
+            }
+
+            // Check file type
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf', 'application/postscript', 'image/vnd.adobe.photoshop'];
+            if (!allowedTypes.includes(file.type) && !file.name.match(/\.(ai|eps|psd|cdr)$/i)) {
+                notify("Invalid file type. Please upload image, PDF, AI, EPS, PSD, or CDR files.", { type: "error" });
+                event.target.value = "";
+                return;
+            }
+
+            this.customerDesignFile = file;
+            this.customerDesignFileName = file.name;
+            this.errors.clear('customer_design');
+
+            // Create preview for images
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.customerDesignPreview = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                this.customerDesignPreview = null;
+            }
+
+            // Upload file to server
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('product_id', this.product.id);
+
+            try {
+                const response = await axios.post('/cart/upload-customer-design', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+
+                this.cartItemForm.customer_design_file_id = response.data.file_id;
+                this.customerDesignFileId = response.data.file_id;
+                // Update preview with server URL if it's an image
+                if (file.type.startsWith('image/') && response.data.path) {
+                    this.customerDesignPreview = response.data.path;
+                }
+                notify("Design uploaded successfully", { type: "success" });
+            } catch (error) {
+                notify(error.response?.data?.message || "Failed to upload design", { type: "error" });
+                this.customerDesignFile = null;
+                this.customerDesignFileName = null;
+                this.customerDesignPreview = null;
+                this.customerDesignFileId = null;
+                event.target.value = "";
+            }
+        },
+
+        removeCustomerDesign() {
+            this.customerDesignFile = null;
+            this.customerDesignFileName = null;
+            this.customerDesignPreview = null;
+            this.customerDesignFileId = null;
+            this.cartItemForm.customer_design_file_id = null;
+            document.getElementById('customer_design').value = "";
         },
 
         async fetchReviews() {

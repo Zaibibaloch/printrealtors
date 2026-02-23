@@ -9,6 +9,7 @@ Route::delete('cart/clear', 'CartController@clear')->name('cart.clear');
 Route::post('cart/items', 'CartItemController@store')->name('cart.items.store');
 Route::put('cart/items/{id}', 'CartItemController@update')->name('cart.items.update');
 Route::delete('cart/items/{id}', 'CartItemController@destroy')->name('cart.items.destroy');
+Route::post('cart/upload-customer-design', 'CartItemController@uploadCustomerDesign')->name('cart.upload_customer_design');
 
 Route::post('cart/taxes', 'CartTaxController@store')->name('cart.taxes.store');
 
