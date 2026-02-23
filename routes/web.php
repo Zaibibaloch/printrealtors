@@ -14,12 +14,52 @@ Route::post('license', 'LicenseController@store')->name('license.store');
 // TODO: Remove this route after migration is complete
 Route::get('run-customer-design-migration', function () {
     try {
+        // First, check the data type of files.id column
+        $filesIdType = DB::select("
+            SELECT DATA_TYPE, COLUMN_TYPE 
+            FROM information_schema.COLUMNS 
+            WHERE TABLE_SCHEMA = DATABASE() 
+            AND TABLE_NAME = 'files' 
+            AND COLUMN_NAME = 'id'
+        ");
+        
+        $filesIdColumnType = $filesIdType[0]->COLUMN_TYPE ?? 'int(10) unsigned';
+        $isBigInt = strpos(strtolower($filesIdColumnType), 'bigint') !== false;
+        
         // Check if column already exists
         $columnExists = Schema::hasColumn('order_products', 'customer_design_file_id');
         
         if (!$columnExists) {
-            // Add column
-            DB::statement('ALTER TABLE `order_products` ADD COLUMN `customer_design_file_id` INT UNSIGNED NULL AFTER `line_total`');
+            // Use BIGINT UNSIGNED if files.id is BIGINT, otherwise INT UNSIGNED
+            if ($isBigInt) {
+                DB::statement('ALTER TABLE `order_products` ADD COLUMN `customer_design_file_id` BIGINT UNSIGNED NULL AFTER `line_total`');
+            } else {
+                DB::statement('ALTER TABLE `order_products` ADD COLUMN `customer_design_file_id` INT UNSIGNED NULL AFTER `line_total`');
+            }
+        } else {
+            // Check current column type and modify if needed
+            $currentColumnType = DB::select("
+                SELECT COLUMN_TYPE 
+                FROM information_schema.COLUMNS 
+                WHERE TABLE_SCHEMA = DATABASE() 
+                AND TABLE_NAME = 'order_products' 
+                AND COLUMN_NAME = 'customer_design_file_id'
+            ");
+            
+            if (!empty($currentColumnType)) {
+                $currentType = strtolower($currentColumnType[0]->COLUMN_TYPE);
+                $needsModify = false;
+                
+                if ($isBigInt && strpos($currentType, 'bigint') === false) {
+                    // Need to change to BIGINT
+                    DB::statement('ALTER TABLE `order_products` MODIFY COLUMN `customer_design_file_id` BIGINT UNSIGNED NULL');
+                    $needsModify = true;
+                } elseif (!$isBigInt && strpos($currentType, 'bigint') !== false) {
+                    // Need to change to INT
+                    DB::statement('ALTER TABLE `order_products` MODIFY COLUMN `customer_design_file_id` INT UNSIGNED NULL');
+                    $needsModify = true;
+                }
+            }
         }
         
         // Check if foreign key exists
@@ -59,6 +99,8 @@ Route::get('run-customer-design-migration', function () {
         return response()->json([
             'success' => true,
             'message' => 'Migration completed successfully!',
+            'files_id_type' => $filesIdColumnType,
+            'is_bigint' => $isBigInt,
             'column_exists' => $columnExists ? 'already existed' : 'created',
             'foreign_key_exists' => !empty($foreignKeys) ? 'already existed' : 'created',
         ]);
