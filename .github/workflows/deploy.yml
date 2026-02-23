@@ -1,0 +1,58 @@
+name: Deploy to Live Server
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          port: ${{ secrets.SSH_PORT }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ~/domains/printrealtors.com/public_html
+            
+            # Git pull latest code
+            echo "📥 Pulling latest code from GitHub..."
+            git fetch origin
+            git reset --hard origin/master
+            
+            # Run database migration (if needed)
+            echo "🗄️ Running database migrations..."
+            php artisan migrate --force --path=modules/Variation/Database/Migrations/2026_02_23_135927_add_design_file_id_to_variations_table.php || echo "Migration already run or failed"
+            
+            # Install/update npm dependencies (if npm is available)
+            echo "📦 Installing npm dependencies..."
+            if command -v npm &> /dev/null; then
+              npm install --production
+              npm run build
+            else
+              echo "⚠️ npm not found, skipping build step"
+            fi
+            
+            # Clear Laravel cache
+            echo "🧹 Clearing Laravel cache..."
+            php artisan config:clear
+            php artisan cache:clear
+            php artisan view:clear
+            php artisan route:clear
+            
+            # Optimize Laravel (optional)
+            echo "⚡ Optimizing Laravel..."
+            php artisan config:cache || true
+            php artisan route:cache || true
+            php artisan view:cache || true
+            
+            echo "✅ Deployment completed successfully!"

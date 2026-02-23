@@ -2,7 +2,8 @@
 .meta/
 .vscode/
 .idea/
-.github/
+.github/*
+!.github/workflows/
 .phpintel/
 *.sublime-project
 .DS_Store
