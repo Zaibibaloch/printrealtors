@@ -23,6 +23,17 @@ trait EloquentRelations
     }
 
 
+    /**
+     * Multiple brands assigned to the product.
+     *
+     * This is used for the admin multi-select, similar to categories.
+     */
+    public function brands(): BelongsToMany
+    {
+        return $this->belongsToMany(Brand::class, 'product_brands');
+    }
+
+
     public function tags(): BelongsToMany
     {
         return $this->belongsToMany(Tag::class, 'product_tags');

@@ -58,31 +58,34 @@
 
                                         @if ($product->customerDesignFile)
                                             <br>
-                                            <div class="customer-design-file"
-                                                style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #f1f1f1;">
-                                                <span
-                                                    style="font-size: 14px; font-weight: 600; color: #444444; display: block; margin-bottom: 8px;">
+                                            <div class="customer-design-file">
+                                                <span>
                                                     {{ trans('order::orders.customer_design') }}:
                                                 </span>
+
                                                 <a href="{{ $product->customerDesignFile->path }}" target="_blank"
-                                                    download="{{ $product->customerDesignFile->filename }}"
-                                                    onmouseover="this.style.backgroundColor='#0056b3'"
-                                                    onmouseout="this.style.backgroundColor='#0068e1'"
-                                                    style="display: inline-block; padding: 6px 12px; background-color: #0068e1; color: #ffffff; text-decoration: none; border-radius: 3px; font-size: 13px; font-weight: 400; transition: background-color 150ms ease-in-out; margin-bottom: 10px;">
-                                                    <i class="fa fa-download" style="margin-right: 5px;"></i>
+                                                    download="{{ $product->customerDesignFile->filename }}">
+                                                    <i class="fa fa-download"></i>
                                                     {{ trans('order::orders.download_design') }}
                                                 </a>
+
+                                                <button type="button"
+                                                    class="btn btn-sm btn-danger delete-customer-design"
+                                                    data-action="{{ route('admin.orders.products.customer_design.destroy', [$order->id, $product->id]) }}"
+                                                    data-confirm>
+                                                    <i class="fa fa-trash"></i>
+                                                    {{ trans('order::orders.delete_design') }}
+                                                </button>
+
                                                 @if ($product->customerDesignFile->isImage())
-                                                    <div style="margin-top: 10px;">
+                                                    <div>
                                                         <img src="{{ $product->customerDesignFile->path }}"
-                                                            alt="Customer Design"
-                                                            style="max-width: 250px; max-height: 200px; border: 1px solid #e9e9e9; border-radius: 4px; display: block; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                                                            alt="Customer Design">
                                                     </div>
                                                 @else
-                                                    <div style="margin-top: 8px;">
-                                                        <span
-                                                            style="font-size: 13px; color: #9a9a9a; display: inline-block;">
-                                                            <i class="fa fa-file" style="margin-right: 5px;"></i>
+                                                    <div>
+                                                        <span>
+                                                            <i class="fa fa-file"></i>
                                                             {{ $product->customerDesignFile->filename }}
                                                         </span>
                                                     </div>

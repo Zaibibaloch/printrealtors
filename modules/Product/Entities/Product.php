@@ -144,8 +144,21 @@ class Product extends Model implements Sitemapable
 
         static::saved(function ($product) {
             $attributes = request()->all();
+            $brands = [];
 
             if (!empty($attributes)) {
+                // Sync many-to-many brands from the request, falling back to a single brand_id
+                // if only one primary brand has been provided.
+                $brands = array_get($attributes, 'brands', []);
+
+                if (empty($brands) && !empty($attributes['brand_id'] ?? null)) {
+                    $brands = [(int) $attributes['brand_id']];
+                }
+
+                if (!empty($brands)) {
+                    $product->brands()->sync($brands);
+                }
+
                 $product->categories()->sync(array_get($attributes, 'categories', []));
                 $product->tags()->sync(array_get($attributes, 'tags', []));
                 $product->upSellProducts()->sync(array_get($attributes, 'up_sells', []));
@@ -156,6 +169,8 @@ class Product extends Model implements Sitemapable
             $product->withoutEvents(function () use ($product) {
                 $product->update([
                     'selling_price' => ($product->hasSpecialPrice() ? $product->getSpecialPrice() : $product->price)->amount(),
+                    // Keep the original brand_id column as the first selected brand (if any)
+                    'brand_id' => $product->brands()->pluck('brands.id')->first(),
                 ]);
             });
         });

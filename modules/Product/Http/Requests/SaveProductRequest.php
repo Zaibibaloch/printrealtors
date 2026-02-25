@@ -43,7 +43,11 @@ class SaveProductRequest extends Request
                 'slug' => $this->getSlugRules(),
                 'name' => 'required',
                 'description' => 'required',
+                // Keep support for a single primary brand_id for backwards compatibility
                 'brand_id' => ['nullable', Rule::exists('brands', 'id')],
+                // New: allow assigning multiple brands, similar to categories
+                'brands' => ['nullable', 'array'],
+                'brands.*' => [Rule::exists('brands', 'id')],
                 'tax_class_id' => ['nullable', Rule::exists('tax_classes', 'id')],
                 'price' => 'required_without:variants|nullable|numeric|min:0|max:99999999999999',
                 'special_price' => 'nullable|numeric|min:0|max:99999999999999',

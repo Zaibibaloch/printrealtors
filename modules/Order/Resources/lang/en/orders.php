@@ -44,4 +44,6 @@ return [
     'total' => 'Total',
     'customer_design' => 'Customer Design',
     'download_design' => 'Download Design',
+    'delete_design' => 'Delete Design',
+    'customer_design_deleted' => 'Customer design deleted successfully.',
 ];

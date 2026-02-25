@@ -13,7 +13,8 @@ function initialFormData() {
     return {
         name: null,
         description: null,
-        brand_id: "",
+        // Multiple brands, similar to categories
+        brands: [],
         categories: [],
         tax_class_id: "",
         tags: [],

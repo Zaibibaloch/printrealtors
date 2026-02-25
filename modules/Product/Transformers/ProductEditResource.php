@@ -18,13 +18,25 @@ class ProductEditResource extends JsonResource
      */
     public function toArray($request): array
     {
+        // Multi-brand IDs for the form. If pivot table is still empty for old
+        // products, fall back to the single brand_id column so the existing
+        // brand appears selected in the multi-select.
+        $brandIds = $this->brands->pluck('id');
+
+        if ($brandIds->isEmpty() && $this->brand_id) {
+            $brandIds = collect([$this->brand_id]);
+        }
+
         return [
             'id' => $this->id,
             'slug' => $this->slug,
             'name' => $this->name,
             'description' => $this->description,
             'short_description' => $this->short_description,
+            // Keep brand_id for backwards compatibility,
+            // but also expose the multi-brand IDs array for the new UI.
             'brand_id' => $this->brand_id ?? '',
+            'brands' => $brandIds,
             'categories' => $this->categories->pluck('id'),
             'tags' => $this->tags->pluck('id'),
             'attributes' => ProductAttributeResource::collection($this->attributes),

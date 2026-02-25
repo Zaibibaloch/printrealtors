@@ -43,3 +43,9 @@ Route::get('orders/{order}/print', [
     'uses' => 'OrderPrintController@show',
     'middleware' => 'can:admin.orders.show',
 ]);
+
+Route::delete('orders/{order}/products/{orderProduct}/customer-design', [
+    'as' => 'admin.orders.products.customer_design.destroy',
+    'uses' => 'OrderCustomerDesignController@destroy',
+    'middleware' => 'can:admin.orders.edit',
+]);

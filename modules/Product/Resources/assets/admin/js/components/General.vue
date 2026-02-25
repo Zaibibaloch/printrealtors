@@ -12,121 +12,66 @@
                 </label>
 
                 <div class="col-sm-12">
-                    <input
-                        type="text"
-                        name="name"
-                        id="name"
-                        class="form-control"
-                        v-model="form.name"
-                        @change="
+                    <input type="text" name="name" id="name" class="form-control" v-model="form.name" @change="
                             if (
-                                window.location.pathname.endsWith(
-                                    'products/create'
-                                )
-                            ) {
-                                setProductSlug($event.target.value);
-                            }
-                        "
-                    />
+                        window.location.pathname.endsWith(
+                            'products/create'
+                        )
+                    ) {
+                        setProductSlug($event.target.value);
+                    }
+                        " />
 
-                    <span
-                        class="help-block text-red"
-                        v-if="errors.has('name')"
-                        v-text="errors.get('name')"
-                    ></span>
+                    <span class="help-block text-red" v-if="errors.has('name')" v-text="errors.get('name')"></span>
                 </div>
             </div>
 
             <div class="form-group row">
-                <label
-                    for="description"
-                    class="col-sm-12 control-label text-left"
-                    @click="focusEditor"
-                >
+                <label for="description" class="col-sm-12 control-label text-left" @click="focusEditor">
                     {{ trans("product::attributes.description") }}
                     <span class="text-red">*</span>
                 </label>
 
                 <div class="col-sm-12">
-                    <textarea
-                        name="description"
-                        id="description"
-                        class="form-control wysiwyg"
-                        v-model="form.description"
-                    >
+                    <textarea name="description" id="description" class="form-control wysiwyg"
+                        v-model="form.description">
                     </textarea>
 
-                    <span
-                        class="help-block text-red"
-                        v-if="errors.has('description')"
-                        v-text="errors.get('description')"
-                    ></span>
+                    <span class="help-block text-red" v-if="errors.has('description')"
+                        v-text="errors.get('description')"></span>
                 </div>
             </div>
 
             <div class="form-group row">
-                <label for="brand-id" class="col-sm-12 control-label text-left">
+                <label for="brands" class="col-sm-12 control-label text-left">
                     {{ trans("product::attributes.brand_id") }}
                 </label>
 
                 <div class="col-sm-6">
-                    <select
-                        name="brand_id"
-                        id="brand-id"
-                        class="form-control custom-select-black"
-                        v-model="form.brand_id"
-                    >
-                        <option value="">
-                            {{ trans("admin::admin.form.please_select") }}
-                        </option>
-
-                        <option
-                            v-for="(brand, index) in brands"
-                            :key="index"
-                            :value="brand.value"
-                        >
+                    <select name="brands" id="brands" multiple v-model="form.brands" ref="brandsField">
+                        <option v-for="(brand, index) in brands" :key="index" :value="brand.value">
                             {{ brand.name }}
                         </option>
                     </select>
 
-                    <span
-                        class="help-block text-red"
-                        v-if="errors.has('brand_id')"
-                        v-text="errors.get('brand_id')"
-                    ></span>
+                    <span class="help-block text-red" v-if="errors.has('brands')" v-text="errors.get('brands')"></span>
                 </div>
             </div>
 
             <div class="form-group row">
-                <label
-                    for="categories"
-                    class="col-sm-12 control-label text-left"
-                >
+                <label for="categories" class="col-sm-12 control-label text-left">
                     {{ trans("product::attributes.categories") }}
                 </label>
 
                 <div class="col-sm-6">
-                    <select
-                        name="categories"
-                        id="categories"
-                        multiple
-                        v-model="form.categories"
-                        ref="categoriesField"
-                    >
-                        <option
-                            v-for="(category, index) in categories"
-                            :key="index"
-                            :value="category.value"
-                        >
+                    <select name="categories" id="categories" multiple v-model="form.categories" ref="categoriesField">
+                        <option v-for="(category, index) in categories" :key="index" :value="category.value">
                             {{ category.name }}
                         </option>
                     </select>
 
-                    <span
-                        class="help-block text-red"
-                        v-if="errors.has('categories')"
-                        v-text="errors.get('categories')"
-                    ></span>
+                    <span class="help-block text-red" v-if="errors.has('categories')"
+                        v-text="errors.get('categories')"></span>
                 </div>
             </div>
 
@@ -136,118 +81,67 @@
                 </label>
 
                 <div class="col-sm-6">
-                    <select
-                        name="tags"
-                        id="tags"
-                        multiple
-                        v-model="form.tags"
-                        ref="tagsField"
-                    >
-                        <option
-                            v-for="(tag, index) in tags"
-                            :key="index"
-                            :value="tag.value"
-                        >
+                    <select name="tags" id="tags" multiple v-model="form.tags" ref="tagsField">
+                        <option v-for="(tag, index) in tags" :key="index" :value="tag.value">
                             {{ tag.name }}
                         </option>
                     </select>
 
-                    <span
-                        class="help-block text-red"
-                        v-if="errors.has('tags')"
-                        v-text="errors.get('tags')"
-                    ></span>
+                    <span class="help-block text-red" v-if="errors.has('tags')" v-text="errors.get('tags')"></span>
                 </div>
             </div>
 
             <div class="form-group row">
-                <label
-                    for="tax-class-id"
-                    class="col-sm-12 control-label text-left"
-                >
+                <label for="tax-class-id" class="col-sm-12 control-label text-left">
                     {{ trans("product::attributes.tax_class_id") }}
                 </label>
 
                 <div class="col-sm-6">
-                    <select
-                        name="tax_class_id"
-                        id="tax-class-id"
-                        class="form-control custom-select-black"
-                        v-model="form.tax_class_id"
-                    >
+                    <select name="tax_class_id" id="tax-class-id" class="form-control custom-select-black"
+                        v-model="form.tax_class_id">
                         <option value="">
                             {{ trans("admin::admin.form.please_select") }}
                         </option>
 
-                        <option
-                            v-for="(taxClass, index, key) in taxClasses"
-                            :key="key"
-                            :value="index"
-                        >
+                        <option v-for="(taxClass, index, key) in taxClasses" :key="key" :value="index">
                             {{ taxClass }}
                         </option>
                     </select>
 
-                    <span
-                        class="help-block text-red"
-                        v-if="errors.has('tax_class_id')"
-                        v-text="errors.get('tax_class_id')"
-                    ></span>
+                    <span class="help-block text-red" v-if="errors.has('tax_class_id')"
+                        v-text="errors.get('tax_class_id')"></span>
                 </div>
             </div>
 
             <div class="form-group row">
-                <label
-                    for="is_virtual"
-                    class="col-sm-12 control-label text-left"
-                >
+                <label for="is_virtual" class="col-sm-12 control-label text-left">
                     {{ trans("product::attributes.is_virtual") }}
                 </label>
 
                 <div class="col-sm-6">
                     <div class="switch">
-                        <input
-                            type="checkbox"
-                            name="is_virtual"
-                            id="is-virtual"
-                            v-model="form.is_virtual"
-                        />
+                        <input type="checkbox" name="is_virtual" id="is-virtual" v-model="form.is_virtual" />
 
-                        <label
-                            for="is-virtual"
-                            v-html="
-                                trans(
-                                    'product::products.form.the_product_won\'t_be_shipped'
-                                )
-                            "
-                        >
+                        <label for="is-virtual" v-html="trans(
+                            'product::products.form.the_product_won\'t_be_shipped'
+                        )
+                            ">
                         </label>
                     </div>
 
-                    <span
-                        class="help-block text-red"
-                        v-if="errors.has('is_virtual')"
-                        v-text="errors.get('is_virtual')"
-                    ></span>
+                    <span class="help-block text-red" v-if="errors.has('is_virtual')"
+                        v-text="errors.get('is_virtual')"></span>
                 </div>
             </div>
 
             <div class="form-group row">
-                <label
-                    for="is-active"
-                    class="col-sm-12 control-label text-left"
-                >
+                <label for="is-active" class="col-sm-12 control-label text-left">
                     {{ trans("product::attributes.is_active") }}
                 </label>
 
                 <div class="col-sm-9">
                     <div class="switch">
-                        <input
-                            type="checkbox"
-                            name="is_active"
-                            id="is-active"
-                            v-model="form.is_active"
-                        />
+                        <input type="checkbox" name="is_active" id="is-active" v-model="form.is_active" />
 
                         <label for="is-active">
                             {{
@@ -257,11 +151,8 @@
                             }}
                         </label>
 
-                        <span
-                            class="help-block text-red"
-                            v-if="errors.has('is_active')"
-                            v-text="errors.get('is_active')"
-                        ></span>
+                        <span class="help-block text-red" v-if="errors.has('is_active')"
+                            v-text="errors.get('is_active')"></span>
                     </div>
                 </div>
             </div>
@@ -277,6 +168,7 @@ import tinyMCE from "@admin/js/wysiwyg";
 
 const textEditor = ref(null);
 const brands = ref(FleetCart.data["brands"] ?? {});
+const brandsField = ref(null);
 const categories = ref(FleetCart.data["categories"] ?? {});
 const categoriesField = ref(null);
 const taxClasses = FleetCart.data["tax-classes"] ?? {};
@@ -299,6 +191,20 @@ function initTextEditor() {
 
                 errors.clear("description");
             });
+        },
+    });
+}
+
+function initBrandsSelectize() {
+    $(brandsField.value).selectize({
+        plugins: ["remove_button"],
+        delimiter: ",",
+        persist: true,
+        selectOnTab: true,
+        hideSelected: false,
+        allowEmptyOption: true,
+        onChange: (values) => {
+            form.brands = values;
         },
     });
 }
@@ -335,7 +241,7 @@ function initCategoriesSelectize() {
                 .each((_, el) => {
                     $(el).html(
                         $(el).text().slice(0, -1).replace(/¦––\s/g, "") +
-                            '<a href="javascript:void(0)" class="remove" tabindex="-1">×</a>'
+                        '<a href="javascript:void(0)" class="remove" tabindex="-1">×</a>'
                     );
                 });
         },
@@ -360,6 +266,10 @@ function resetFields() {
     textEditor.value.get("description").setContent("");
     textEditor.value.get("description").execCommand("mceCancel");
 
+    if ($(brandsField.value)[0]?.selectize) {
+        $(brandsField.value)[0].selectize.clear();
+    }
+
     $(categoriesField.value)[0].selectize.clear();
     $(tagsField.value)[0].selectize.clear();
 
@@ -382,6 +292,7 @@ watch(shouldResetForm, () => {
 
 onMounted(() => {
     initTextEditor();
+    initBrandsSelectize();
     initCategoriesSelectize();
     initTagsSelectize();
 });

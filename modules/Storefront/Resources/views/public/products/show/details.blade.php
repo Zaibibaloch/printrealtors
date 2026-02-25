@@ -195,6 +195,26 @@
                 </li>
             </template>
 
+            @php
+                // Prefer the many-to-many brands relation; if it's empty but the
+                // legacy brand_id column is set, fall back to the single brand.
+                $brands = $product->brands->isNotEmpty()
+                    ? $product->brands
+                    : ($product->brand && $product->brand->exists
+                        ? collect([$product->brand])
+                        : collect());
+            @endphp
+
+            @if ($brands->isNotEmpty())
+                <li>
+                    <label>{{ trans('storefront::brands.brands') }}</label>
+
+                    @foreach ($brands as $brand)
+                        <a href="{{ $brand->url() }}">{{ $brand->name }}</a>{{ $loop->last ? '' : ',' }}
+                    @endforeach
+                </li>
+            @endif
+
             @if ($product->categories->isNotEmpty())
                 <li>
                     <label>{{ trans('storefront::product.categories') }}</label>

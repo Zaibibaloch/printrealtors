@@ -23,3 +23,15 @@
         'modules/Order/Resources/assets/admin/js/main.js',
     ])
 @endpush
+
+@push('scripts')
+    <script type="module">
+        $('.items-ordered').on('click', '.delete-customer-design', (e) => {
+            e.preventDefault();
+
+            const action = e.currentTarget.dataset.action;
+
+            $('#confirmation-form').attr('action', action);
+        });
+    </script>
+@endpush
