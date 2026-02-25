@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Artisan;
 
 Route::get('install', 'InstallController@installation')->name('install.show');
 Route::post('install', 'InstallController@install')->name('install.do');
@@ -337,3 +338,30 @@ Route::get('backfill-product-brands', function () {
         ], 500);
     }
 })->name('backfill.product_brands');
+
+
+// Temporary route to clear and optimize application caches on live server
+// where running php artisan commands over SSH is not convenient.
+// TODO: Remove this route after using it when needed.
+Route::get('clear-all-caches', function () {
+    try {
+        $results = [];
+
+        $results['config_clear'] = Artisan::call('config:clear');
+        $results['cache_clear'] = Artisan::call('cache:clear');
+        $results['view_clear'] = Artisan::call('view:clear');
+        $results['route_clear'] = Artisan::call('route:clear');
+        $results['optimize_clear'] = Artisan::call('optimize:clear');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'All caches cleared and optimization reset successfully.',
+            'results' => $results,
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to clear caches: ' . $e->getMessage(),
+        ], 500);
+    }
+})->name('clear.all.caches');
