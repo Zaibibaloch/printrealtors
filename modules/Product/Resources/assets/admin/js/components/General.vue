@@ -54,6 +54,21 @@
                         </option>
                     </select>
 
+                    <button
+                        type="button"
+                        class="btn btn-default btn-xs m-t-5"
+                        @click="selectAllBrands"
+                    >
+                        Select All
+                    </button>
+                    <button
+                        type="button"
+                        class="btn btn-default btn-xs m-t-5 m-l-5"
+                        @click="clearAllBrands"
+                    >
+                        Clear All
+                    </button>
+
                     <span class="help-block text-red" v-if="errors.has('brands')" v-text="errors.get('brands')"></span>
                 </div>
             </div>
@@ -69,6 +84,21 @@
                             {{ category.name }}
                         </option>
                     </select>
+
+                    <button
+                        type="button"
+                        class="btn btn-default btn-xs m-t-5"
+                        @click="selectAllCategories"
+                    >
+                        Select All
+                    </button>
+                    <button
+                        type="button"
+                        class="btn btn-default btn-xs m-t-5 m-l-5"
+                        @click="clearAllCategories"
+                    >
+                        Clear All
+                    </button>
 
                     <span class="help-block text-red" v-if="errors.has('categories')"
                         v-text="errors.get('categories')"></span>
@@ -209,6 +239,35 @@ function initBrandsSelectize() {
     });
 }
 
+function getBrandOptions() {
+    if (Array.isArray(brands.value)) {
+        return brands.value;
+    }
+
+    return Object.values(brands.value ?? {});
+}
+
+function selectAllBrands() {
+    const allBrandValues = getBrandOptions().map((brand) => String(brand.value));
+    const brandsSelectize = $(brandsField.value)[0]?.selectize;
+
+    if (brandsSelectize) {
+        brandsSelectize.setValue(allBrandValues, true);
+    }
+
+    form.brands = allBrandValues;
+}
+
+function clearAllBrands() {
+    const brandsSelectize = $(brandsField.value)[0]?.selectize;
+
+    if (brandsSelectize) {
+        brandsSelectize.clear(true);
+    }
+
+    form.brands = [];
+}
+
 function initCategoriesSelectize() {
     $(categoriesField.value).selectize({
         plugins: ["remove_button"],
@@ -246,6 +305,37 @@ function initCategoriesSelectize() {
                 });
         },
     });
+}
+
+function getCategoryOptions() {
+    if (Array.isArray(categories.value)) {
+        return categories.value;
+    }
+
+    return Object.values(categories.value ?? {});
+}
+
+function selectAllCategories() {
+    const allCategoryValues = getCategoryOptions().map((category) =>
+        String(category.value)
+    );
+    const categoriesSelectize = $(categoriesField.value)[0]?.selectize;
+
+    if (categoriesSelectize) {
+        categoriesSelectize.setValue(allCategoryValues, true);
+    }
+
+    form.categories = allCategoryValues;
+}
+
+function clearAllCategories() {
+    const categoriesSelectize = $(categoriesField.value)[0]?.selectize;
+
+    if (categoriesSelectize) {
+        categoriesSelectize.clear(true);
+    }
+
+    form.categories = [];
 }
 
 function initTagsSelectize() {

@@ -118,8 +118,15 @@ class QueryStringFilter
 
     public function brand($query, $slug)
     {
-        $query->whereHas('brand', function ($brandQuery) use ($slug) {
-            $brandQuery->where('slug', $slug);
+        $query->where(function ($productQuery) use ($slug) {
+            $productQuery->whereHas('brands', function ($brandQuery) use ($slug) {
+                $brandQuery->where('slug', $slug);
+            });
+
+            // Backward compatibility for products that still rely on brand_id.
+            $productQuery->orWhereHas('brand', function ($brandQuery) use ($slug) {
+                $brandQuery->where('slug', $slug);
+            });
         });
     }
 
