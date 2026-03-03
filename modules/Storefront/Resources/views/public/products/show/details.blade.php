@@ -75,6 +75,12 @@
     </div>
 
     <div class="details-info-middle">
+        @if ($product->productBanners->isNotEmpty())
+            <div class="product-banners-wrap">
+                @include('storefront::public.products.show.product_banners')
+            </div>
+        @endif
+
         @if ($product->variant)
             <template x-if="isActiveItem">
                 <div class="product-price">

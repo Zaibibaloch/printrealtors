@@ -64,9 +64,6 @@
                                         }}
                                     </option>
 
-                                    <option value="design">
-                                        Design
-                                    </option>
                                 </select>
 
                                 <span class="help-block text-red" v-if="errors.has('type')"
@@ -112,10 +109,6 @@
                                                     "variation::variations.form.image"
                                                 )
                                             }}
-                                            <span class="text-red">*</span>
-                                        </th>
-                                        <th v-else-if="form.type === 'design'">
-                                            Design
                                             <span class="text-red">*</span>
                                         </th>
                                         <th></th>
@@ -203,40 +196,6 @@
                                                         ">
                                                 </span>
                                             </td>
-                                            <td v-else-if="
-                                                form.type === 'design'
-                                            ">
-                                                <div class="d-flex">
-                                                    <div class="image-holder" @click="
-                                                        chooseDesign(
-                                                            index,
-                                                            element.uid
-                                                        )
-                                                        ">
-                                                        <template v-if="
-                                                            element.design && element.design.id
-                                                        ">
-                                                            <img :src="element
-                                                                    .design
-                                                                    .path
-                                                                " alt="variation image" />
-                                                        </template>
-
-                                                        <img v-else src="@admin/images/placeholder_image.png"
-                                                            class="placeholder-image" alt="Placeholder Image" />
-                                                    </div>
-                                                </div>
-
-                                                <span class="help-block text-red" v-if="
-                                                    errors.has(
-                                                        `values.${element.uid}.design`
-                                                    )
-                                                " v-text="errors.get(
-                                                        `values.${element.uid}.design`
-                                                    )
-                                                        ">
-                                                </span>
-                                            </td>
                                             <td class="text-center">
                                                 <button type="button" tabindex="-1" class="btn btn-default delete-row"
                                                     @click="
@@ -303,21 +262,6 @@ export default {
                     };
                 }
 
-                // Handle design field - initialize if missing, or keep existing data
-                if (formData.type === 'design') {
-                    if (!value.design) {
-                        value.design = {
-                            id: null,
-                            path: null,
-                        };
-                    } else if (value.design && !value.design.id && !value.design.path) {
-                        // Ensure design object has proper structure
-                        value.design = {
-                            id: value.design.id || null,
-                            path: value.design.path || null,
-                        };
-                    }
-                }
             });
 
             return formData;

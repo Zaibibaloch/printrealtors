@@ -5,6 +5,7 @@ namespace Modules\Product\Transformers;
 use Illuminate\Http\Request;
 use Modules\Option\Transformers\OptionResource;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\ProductBanner\Transformers\ProductBannerResource;
 use Modules\Variation\Transformers\VariationResource;
 
 class ProductEditResource extends JsonResource
@@ -41,6 +42,7 @@ class ProductEditResource extends JsonResource
             'tags' => $this->tags->pluck('id'),
             'attributes' => ProductAttributeResource::collection($this->attributes),
             'variations' => VariationResource::collection($this->variations()->orderBy('position')->get()),
+            'product_banners' => ProductBannerResource::collection($this->productBanners()->orderBy('position')->get()),
             'options' => OptionResource::collection($this->options),
             'variants' => ProductVariantResource::collection($this->variants()->withoutGlobalScope('active')->orderBy('position')->get()),
             'media' => $this->filterFiles(['base_image', 'additional_images'])->get()->map->only('id', 'path'),

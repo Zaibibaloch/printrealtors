@@ -9,6 +9,7 @@ use Modules\Option\Entities\Option;
 use Modules\Review\Entities\Review;
 use Modules\Category\Entities\Category;
 use Modules\Variation\Entities\Variation;
+use Modules\ProductBanner\Entities\ProductBanner;
 use Modules\Product\Entities\ProductVariant;
 use Modules\Attribute\Entities\ProductAttribute;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -67,6 +68,14 @@ trait EloquentRelations
     public function variations(): BelongsToMany
     {
         return $this->belongsToMany(Variation::class, 'product_variations')
+            ->orderBy('position')
+            ->withTrashed();
+    }
+
+
+    public function productBanners(): BelongsToMany
+    {
+        return $this->belongsToMany(ProductBanner::class, 'product_product_banners')
             ->orderBy('position')
             ->withTrashed();
     }

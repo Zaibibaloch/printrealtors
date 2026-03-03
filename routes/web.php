@@ -365,3 +365,47 @@ Route::get('clear-all-caches', function () {
         ], 500);
     }
 })->name('clear.all.caches');
+
+
+// Temporary route to run recent Product Banner / Variation cleanup migrations on live,
+// where SSH access for artisan commands is not available.
+// TODO: Remove this route after running it once on production.
+Route::get('run-product-banner-migrations', function () {
+    try {
+        $details = [];
+
+        $migrationPaths = [
+            // ProductBanner module migrations (new module tables + design support).
+            'modules/ProductBanner/Database/Migrations/2026_02_25_110000_create_product_banners_table.php',
+            'modules/ProductBanner/Database/Migrations/2026_02_25_110100_create_product_banner_translations_table.php',
+            'modules/ProductBanner/Database/Migrations/2026_02_25_110200_create_product_banner_values_table.php',
+            'modules/ProductBanner/Database/Migrations/2026_02_25_110300_create_product_banner_value_translations_table.php',
+            'modules/ProductBanner/Database/Migrations/2026_02_25_110400_add_design_file_id_to_product_banners_table.php',
+            // Creates product_product_banners pivot table.
+            'modules/Product/Database/Migrations/2026_02_25_130000_create_product_product_banners_table.php',
+            // Drops variations.design_file_id safely if it exists.
+            'modules/Variation/Database/Migrations/2026_02_25_120000_remove_design_file_id_from_variations_table.php',
+        ];
+
+        foreach ($migrationPaths as $path) {
+            Artisan::call('migrate', [
+                '--path' => $path,
+                '--force' => true,
+            ]);
+
+            $details[$path] = trim(Artisan::output()) ?: 'executed';
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Product banner related migrations executed successfully.',
+            'details' => $details,
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Migration execution failed: ' . $e->getMessage(),
+            'error' => $e->getTraceAsString(),
+        ], 500);
+    }
+})->name('run.product_banner.migrations');

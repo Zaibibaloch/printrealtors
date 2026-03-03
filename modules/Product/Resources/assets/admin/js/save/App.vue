@@ -35,6 +35,10 @@
                                 <Variations />
                             </template>
 
+                            <template v-else-if="section === 'product_banners'">
+                                <ProductBanners />
+                            </template>
+
                             <template v-else-if="section === 'variants'">
                                 <Variants />
                             </template>
@@ -138,6 +142,7 @@ import ProductTransformer from "../transformers/ProductTransformer";
 import General from "../components/General.vue";
 import Attributes from "../components/Attributes.vue";
 import Variations from "../components/Variations.vue";
+import ProductBanners from "../components/ProductBanners.vue";
 import Variants from "../components/Variants.vue";
 import Options from "../components/Options.vue";
 import Downloads from "../components/Downloads.vue";

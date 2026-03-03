@@ -1,0 +1,9 @@
+{
+    "name": "ProductBanner",
+    "alias": "product_banner",
+    "description": "The FleetCart Product Banner Module.",
+    "priority": 90,
+    "providers": [
+        "Modules\\ProductBanner\\Providers\\ProductBannerServiceProvider"
+    ]
+}

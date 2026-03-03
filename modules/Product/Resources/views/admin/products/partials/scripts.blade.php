@@ -7,6 +7,7 @@
         FleetCart.data['tags'] = @json($tags);
         FleetCart.data['attribute-sets'] = @json($attributeSets);
         FleetCart.data['global-variations'] = @json($globalVariations);
+        FleetCart.data['global-product-banners'] = @json($globalProductBanners);
         FleetCart.data['global-options'] = @json($globalOptions);
         FleetCart.langs['admin::admin.form.please_select'] = '{{ trans('admin::admin.form.please_select') }}';
         FleetCart.langs['product::products.section.order_saved'] = '{{ trans('product::products.section.order_saved') }}';

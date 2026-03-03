@@ -6,6 +6,7 @@ use Modules\Product\Entities\Product;
 use Modules\Product\Events\ProductViewed;
 use Modules\Product\Listeners\StoreSearchTerm;
 use Modules\Product\Events\ShowingProductList;
+use Modules\Product\Listeners\SaveProductBanners;
 use Modules\Product\Listeners\SaveProductVariants;
 use Modules\Product\Listeners\AddToRecentlyViewed;
 use Modules\Product\Listeners\IncrementProductView;
@@ -40,6 +41,7 @@ class EventServiceProvider extends ServiceProvider
         parent::boot();
 
         Product::saved(SaveProductVariations::class);
+        Product::saved(SaveProductBanners::class);
         Product::saved(SaveProductVariants::class);
     }
 }

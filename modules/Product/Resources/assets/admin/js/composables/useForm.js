@@ -22,6 +22,7 @@ function initialFormData() {
         is_active: true,
         attributes: [],
         variations: [],
+        product_banners: [],
         variants: [],
         options: [],
         downloads: [],
@@ -50,6 +51,7 @@ export function useForm() {
     function prepareFormData(data) {
         prepareAttributes(data);
         prepareVariations(data);
+        prepareProductBanners(data);
         prepareVariants(data);
         prepareOptions(data);
 
@@ -69,6 +71,28 @@ export function useForm() {
             variation.values.forEach((value) => {
                 if (!value?.image?.id) {
                     value.image = {
+                        id: null,
+                        path: null,
+                    };
+                }
+            });
+        });
+    }
+
+    function prepareProductBanners({ product_banners }) {
+        product_banners.forEach((productBanner) => {
+            productBanner.is_open = false;
+
+            productBanner.values.forEach((value) => {
+                if (!value?.image?.id) {
+                    value.image = {
+                        id: null,
+                        path: null,
+                    };
+                }
+
+                if (productBanner.type === "design" && !value?.design?.id) {
+                    value.design = {
                         id: null,
                         path: null,
                     };

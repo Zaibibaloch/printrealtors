@@ -600,10 +600,6 @@ Alpine.data(
                 this.variationImagePath = value.image.path;
             }
 
-            if (!this.isMobileDevice() && variation.type === "design") {
-                this.variationImagePath = value.design.path;
-            }
-
             this.activeVariationValues[variation.uid] = value.label;
         },
 

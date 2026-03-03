@@ -9,6 +9,7 @@ use Modules\Tax\Entities\TaxClass;
 use Modules\Option\Entities\Option;
 use Modules\Category\Entities\Category;
 use Modules\Variation\Entities\Variation;
+use Modules\ProductBanner\Entities\ProductBanner;
 use Modules\Attribute\Entities\AttributeSet;
 
 class ProductEditPageComposer
@@ -25,6 +26,7 @@ class ProductEditPageComposer
         $view->with([
             'permissions' => auth()->user()->permissions,
             'globalVariations' => Variation::globals()->latest()->get(),
+            'globalProductBanners' => ProductBanner::globals()->latest()->get(),
             'globalOptions' => Option::globals()->latest()->get(),
             'brands' => Brand::keyValuedList(),
             'categories' => Category::keyValuedTreeList(),

@@ -1,0 +1,362 @@
+<template>
+    <div class="box-body">
+        <form class="form" @input="errors.clear($event.target.name)" @submit.prevent ref="form">
+            <div class="row" :class="{ 'has-product_banner-type': !isEmptyProductBannerType }">
+                <div class="col-lg-2 col-sm-2">
+                    <h5>{{ trans("product_banner::product_banners.group.general") }}</h5>
+                </div>
+
+                <div class="col-lg-7 col-sm-10">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label for="name">
+                                    {{ trans("product_banner::attributes.name") }}
+                                    <span class="text-red">*</span>
+                                </label>
+
+                                <input type="text" name="name" id="name" class="form-control" v-model="form.name" />
+
+                                <span class="help-block text-red" v-if="errors.has('name')"
+                                    v-text="errors.get('name')"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label for="type">
+                                    {{ trans("product_banner::attributes.type") }}
+                                    <span class="text-red">*</span>
+                                </label>
+
+                                <select name="type" id="type" class="form-control custom-select-black" @change="
+                                    changeProductBannerType($event.target.value)
+                                    " v-model="form.type">
+                                    <option value="">
+                                        {{
+                                            trans(
+                                                "product_banner::product_banners.form.product_banner_types.please_select"
+                                            )
+                                        }}
+                                    </option>
+
+                                    <option value="text">
+                                        {{
+                                            trans(
+                                                "product_banner::product_banners.form.product_banner_types.text"
+                                            )
+                                        }}
+                                    </option>
+
+                                    <option value="color">
+                                        {{
+                                            trans(
+                                                "product_banner::product_banners.form.product_banner_types.color"
+                                            )
+                                        }}
+                                    </option>
+
+                                    <option value="image">
+                                        {{
+                                            trans(
+                                                "product_banner::product_banners.form.product_banner_types.image"
+                                            )
+                                        }}
+                                    </option>
+
+                                    <option value="design">
+                                        Design
+                                    </option>
+                                </select>
+
+                                <span class="help-block text-red" v-if="errors.has('type')"
+                                    v-text="errors.get('type')"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div v-cloak class="row" v-if="!isEmptyProductBannerType">
+                <div class="col-lg-2 col-sm-2">
+                    <h5>{{ trans("product_banner::product_banners.group.values") }}</h5>
+                </div>
+
+                <div class="col-lg-7 col-sm-10">
+                    <div class="product_banner-values clearfix">
+                        <div class="table-responsive">
+                            <table class="options table table-bordered table-striped" :class="form.type !== '' ? `type-${form.type}` : ''
+                                ">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>
+                                            {{
+                                                trans(
+                                                    "product_banner::product_banners.form.label"
+                                                )
+                                            }}
+                                            <span class="text-red">*</span>
+                                        </th>
+                                        <th v-if="form.type === 'color'">
+                                            {{
+                                                trans(
+                                                    "product_banner::product_banners.form.color"
+                                                )
+                                            }}
+                                            <span class="text-red">*</span>
+                                        </th>
+                                        <th v-else-if="form.type === 'image'">
+                                            {{
+                                                trans(
+                                                    "product_banner::product_banners.form.image"
+                                                )
+                                            }}
+                                            <span class="text-red">*</span>
+                                        </th>
+                                        <th v-else-if="form.type === 'design'">
+                                            Design
+                                            <span class="text-red">*</span>
+                                        </th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+
+                                <tbody is="vue:draggable" tag="tbody" handle=".drag-handle" item-key="uid"
+                                    animation="150" :list="form.values" @end="updateColorThumbnails">
+                                    <template #item="{ element, index }">
+                                        <tr class="option-row">
+                                            <td class="text-center">
+                                                <span class="drag-handle">
+                                                    <i class="fa">&#xf142;</i>
+                                                    <i class="fa">&#xf142;</i>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <input type="text" :name="`values.${element.uid}.label`"
+                                                    :id="`values-${element.uid}-label`" class="form-control"
+                                                    @keyup.enter="
+                                                        addRowOnPressEnter(
+                                                            $event,
+                                                            index
+                                                        )
+                                                        " v-model="element.label" />
+
+                                                <span class="help-block text-red" v-if="
+                                                    errors.has(
+                                                        `values.${element.uid}.label`
+                                                    )
+                                                " v-text="errors.get(
+                                                        `values.${element.uid}.label`
+                                                    )
+                                                        ">
+                                                </span>
+                                            </td>
+                                            <td v-if="form.type === 'color'">
+                                                <div>
+                                                    <input type="text" :name="`values.${element.uid}.color`"
+                                                        :id="`values-${element.uid}-color`"
+                                                        class="form-control color-picker" v-model="element.color" />
+                                                </div>
+
+                                                <span class="help-block text-red" v-if="
+                                                    errors.has(
+                                                        `values.${element.uid}.color`
+                                                    )
+                                                " v-text="errors.get(
+                                                        `values.${element.uid}.color`
+                                                    )
+                                                        ">
+                                                </span>
+                                            </td>
+                                            <td v-else-if="
+                                                form.type === 'image'
+                                            ">
+                                                <div class="d-flex">
+                                                    <div class="image-holder" @click="
+                                                        chooseImage(
+                                                            index,
+                                                            element.uid
+                                                        )
+                                                        ">
+                                                        <template v-if="
+                                                            element.image.id
+                                                        ">
+                                                            <img :src="element
+                                                                    .image
+                                                                    .path
+                                                                " alt="product_banner image" />
+                                                        </template>
+
+                                                        <img v-else src="@admin/images/placeholder_image.png"
+                                                            class="placeholder-image" alt="Placeholder Image" />
+                                                    </div>
+                                                </div>
+
+                                                <span class="help-block text-red" v-if="
+                                                    errors.has(
+                                                        `values.${element.uid}.image`
+                                                    )
+                                                " v-text="errors.get(
+                                                        `values.${element.uid}.image`
+                                                    )
+                                                        ">
+                                                </span>
+                                            </td>
+                                            <td v-else-if="
+                                                form.type === 'design'
+                                            ">
+                                                <div class="d-flex">
+                                                    <div class="image-holder" @click="
+                                                        chooseDesign(
+                                                            index,
+                                                            element.uid
+                                                        )
+                                                        ">
+                                                        <template v-if="
+                                                            element.design && element.design.id
+                                                        ">
+                                                            <img :src="element
+                                                                    .design
+                                                                    .path
+                                                                " alt="product_banner image" />
+                                                        </template>
+
+                                                        <img v-else src="@admin/images/placeholder_image.png"
+                                                            class="placeholder-image" alt="Placeholder Image" />
+                                                    </div>
+                                                </div>
+
+                                                <span class="help-block text-red" v-if="
+                                                    errors.has(
+                                                        `values.${element.uid}.design`
+                                                    )
+                                                " v-text="errors.get(
+                                                        `values.${element.uid}.design`
+                                                    )
+                                                        ">
+                                                </span>
+                                            </td>
+                                            <td class="text-center">
+                                                <button type="button" tabindex="-1" class="btn btn-default delete-row"
+                                                    @click="
+                                                        deleteRow(
+                                                            index,
+                                                            element.uid
+                                                        )
+                                                        ">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <button type="button" class="btn btn-default" @click="addRow">
+                            {{ trans("product_banner::product_banners.form.add_row") }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-7 col-lg-offset-2 col-md-12 text-right">
+                    <button type="button" class="btn btn-primary" :class="{
+                        'btn-loading': formSubmitting,
+                    }" :disabled="formSubmitting" @click="submit">
+                        {{ trans("admin::admin.buttons.save") }}
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</template>
+
+<script>
+import { toaster } from "@admin/js/Toaster";
+import ProductBannerMixin from "../mixins/ProductBannerMixin";
+
+export default {
+    mixins: [ProductBannerMixin],
+
+    created() {
+        this.form = this.prepareFormData(FleetCart.data["product_banner"]);
+    },
+
+    mounted() {
+        this.initColorPicker();
+    },
+
+    methods: {
+        prepareFormData(formData) {
+            formData.uid = this.uid();
+
+            formData.values.forEach((value) => {
+                value.uid = this.uid();
+
+                if (!value.image) {
+                    value.image = {
+                        id: null,
+                        path: null,
+                    };
+                }
+
+                // Handle design field - initialize if missing, or keep existing data
+                if (formData.type === 'design') {
+                    if (!value.design) {
+                        value.design = {
+                            id: null,
+                            path: null,
+                        };
+                    } else if (value.design && !value.design.id && !value.design.path) {
+                        // Ensure design object has proper structure
+                        value.design = {
+                            id: value.design.id || null,
+                            path: value.design.path || null,
+                        };
+                    }
+                }
+            });
+
+            return formData;
+        },
+
+        submit() {
+            this.formSubmitting = true;
+
+            axios
+                .put(
+                    `/product-banners/${this.form.id}`,
+                    this.transformData(this.form)
+                )
+                .then((response) => {
+                    const message =
+                        response?.data?.message || "Product banner updated successfully.";
+
+                    toaster(message, {
+                        type: "success",
+                    });
+
+                    this.errors.reset();
+                })
+                .catch(({ response }) => {
+                    const message =
+                        response?.data?.message || "Unable to update product banner.";
+
+                    toaster(message, {
+                        type: "default",
+                    });
+
+                    this.errors.reset();
+                    this.errors.record(response?.data?.errors || {});
+                    this.focusFirstErrorField(this.$refs.form.elements);
+                })
+                .finally(() => {
+                    this.formSubmitting = false;
+                });
+        },
+    },
+};
+</script>

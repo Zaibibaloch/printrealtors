@@ -27,13 +27,6 @@ class VariationValueResource extends JsonResource
                     'path' => $this->image?->path,
                 ]
             ),
-            'design' => $this->when(
-                condition: $this->variation->type === 'design',
-                value: fn () => [
-                    'id' => $this->design?->id,
-                    'path' => $this->design?->path,
-                ]
-            ),
             'color' => $this->when(
                 condition: $this->variation->type === 'color',
                 value: $this->color

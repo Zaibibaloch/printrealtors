@@ -20,6 +20,7 @@ export function useDraggableSections() {
             "product-form-left-sections": [
                 "attributes",
                 "variations",
+                "product_banners",
                 "variants",
                 "options",
                 "downloads",
@@ -37,8 +38,16 @@ export function useDraggableSections() {
     // Load section order from localStorage or fallback to default
     function getSectionsOrder(key) {
         const stored = JSON.parse(localStorage.getItem(key));
+        const initial = getInitialSectionsOrder(key);
 
-        return stored === null ? getInitialSectionsOrder(key) : stored;
+        if (stored === null) {
+            return initial;
+        }
+
+        const validStored = stored.filter((section) => initial.includes(section));
+        const missing = initial.filter((section) => !validStored.includes(section));
+
+        return [...validStored, ...missing];
     }
 
     // Save section order to localStorage

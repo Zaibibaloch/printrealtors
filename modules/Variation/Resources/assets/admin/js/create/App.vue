@@ -87,9 +87,6 @@
                                         }}
                                     </option>
 
-                                    <option value="design">
-                                        Design
-                                    </option>
                                 </select>
 
                                 <span
@@ -142,10 +139,6 @@
                                                     "variation::variations.form.image"
                                                 )
                                             }}
-                                            <span class="text-red">*</span>
-                                        </th>
-                                        <th v-else-if="form.type === 'design'">
-                                            Design
                                             <span class="text-red">*</span>
                                         </th>
                                         <th></th>
@@ -274,60 +267,6 @@
                                                     v-text="
                                                         errors.get(
                                                             `values.${element.uid}.image`
-                                                        )
-                                                    "
-                                                >
-                                                </span>
-                                            </td>
-                                            <td
-                                                v-else-if="
-                                                    form.type === 'design'
-                                                "
-                                            >
-                                                <div class="d-flex">
-                                                    <div
-                                                        class="image-holder"
-                                                        @click="
-                                                            chooseDesign(
-                                                                index,
-                                                                element.uid
-                                                            )
-                                                        "
-                                                    >
-                                                        <template
-                                                            v-if="
-                                                                element.design && element.design.id
-                                                            "
-                                                        >
-                                                            <img
-                                                                :src="
-                                                                    element
-                                                                        .design
-                                                                        .path
-                                                                "
-                                                                alt="variation image"
-                                                            />
-                                                        </template>
-
-                                                        <img
-                                                            v-else
-                                                            src="@admin/images/placeholder_image.png"
-                                                            class="placeholder-image"
-                                                            alt="Placeholder Image"
-                                                        />
-                                                    </div>
-                                                </div>
-
-                                                <span
-                                                    class="help-block text-red"
-                                                    v-if="
-                                                        errors.has(
-                                                            `values.${element.uid}.design`
-                                                        )
-                                                    "
-                                                    v-text="
-                                                        errors.get(
-                                                            `values.${element.uid}.design`
                                                         )
                                                     "
                                                 >

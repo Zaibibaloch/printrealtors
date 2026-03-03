@@ -27,7 +27,22 @@ class ProductRepository
 
     public static function findBySlug($slug)
     {
-        return Product::with(['variations', 'variations.values', 'variations.values.files', 'variants', 'variants.files', 'categories', 'tags', 'attributes.attribute.attributeSet', 'options', 'files', 'reviews'])
+        return Product::with([
+            'variations',
+            'variations.values',
+            'variations.values.files',
+            'productBanners',
+            'productBanners.values',
+            'productBanners.values.files',
+            'variants',
+            'variants.files',
+            'categories',
+            'tags',
+            'attributes.attribute.attributeSet',
+            'options',
+            'files',
+            'reviews',
+        ])
             ->where('slug', $slug)
             ->firstOrFail();
     }

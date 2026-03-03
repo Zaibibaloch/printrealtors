@@ -219,9 +219,6 @@
                                                                 )
                                                             }}
                                                         </option>
-                                                        <option value="design">
-                                                            Design
-                                                        </option>
                                                     </select>
 
                                                     <span
@@ -297,18 +294,6 @@
                                                                     "product::products.form.variations.image"
                                                                 )
                                                             }}
-                                                            <span
-                                                                class="text-red"
-                                                                >*</span
-                                                            >
-                                                        </th>
-                                                        <th
-                                                            v-else-if="
-                                                                variation.type ===
-                                                                'design'
-                                                            "
-                                                        >
-                                                            Design
                                                             <span
                                                                 class="text-red"
                                                                 >*</span
@@ -477,67 +462,6 @@
                                                                     v-text="
                                                                         errors.get(
                                                                             `variations.${variation.uid}.values.${value.uid}.image`
-                                                                        )
-                                                                    "
-                                                                >
-                                                                </span>
-                                                            </td>
-                                                            <td
-                                                                v-else-if="
-                                                                    variation.type ===
-                                                                    'design'
-                                                                "
-                                                            >
-                                                                <div
-                                                                    class="d-flex"
-                                                                >
-                                                                    <div
-                                                                        class="image-holder"
-                                                                        @click="
-                                                                            chooseVariationDesign(
-                                                                                index,
-                                                                                variation.uid,
-                                                                                valueIndex,
-                                                                                value.uid
-                                                                            )
-                                                                        "
-                                                                    >
-                                                                        <template
-                                                                            v-if="
-                                                                                value
-                                                                                    .design
-                                                                                    && value.design.id
-                                                                            "
-                                                                        >
-                                                                            <img
-                                                                                :src="
-                                                                                    value
-                                                                                        .design
-                                                                                        .path
-                                                                                "
-                                                                                alt="variation image"
-                                                                            />
-                                                                        </template>
-
-                                                                        <img
-                                                                            v-else
-                                                                            src="@admin/images/placeholder_image.png"
-                                                                            class="placeholder-image"
-                                                                            alt="Placeholder Image"
-                                                                        />
-                                                                    </div>
-                                                                </div>
-
-                                                                <span
-                                                                    class="help-block text-red"
-                                                                    v-if="
-                                                                        errors.has(
-                                                                            `variations.${variation.uid}.values.${value.uid}.design`
-                                                                        )
-                                                                    "
-                                                                    v-text="
-                                                                        errors.get(
-                                                                            `variations.${variation.uid}.values.${value.uid}.design`
                                                                         )
                                                                     "
                                                                 >
@@ -739,13 +663,11 @@ function changeVariationType(value, index, uid) {
             errors.clear([
                 `variations.${uid}.values.${value.uid}.color`,
                 `variations.${uid}.values.${value.uid}.image`,
-                `variations.${uid}.values.${value.uid}.design`,
             ]);
         });
     } else if (value === "color") {
         variation.values.forEach((value) => {
             errors.clear(`variations.${uid}.values.${value.uid}.image`);
-            errors.clear(`variations.${uid}.values.${value.uid}.design`);
         });
 
         nextTick(() => {
@@ -763,21 +685,6 @@ function changeVariationType(value, index, uid) {
 
         variation.values.forEach((value) => {
             errors.clear(`variations.${uid}.values.${value.uid}.color`);
-            errors.clear(`variations.${uid}.values.${value.uid}.design`);
-        });
-    } else if (value === "design") {
-        variation.values.forEach((value, valueIndex) => {
-            if (!value.design) {
-                variation.values[valueIndex].design = {
-                    id: null,
-                    path: null,
-                };
-            }
-        });
-
-        variation.values.forEach((value) => {
-            errors.clear(`variations.${uid}.values.${value.uid}.color`);
-            errors.clear(`variations.${uid}.values.${value.uid}.image`);
         });
     } else {
         clearValuesError(index, uid);
@@ -802,40 +709,10 @@ function chooseVariationImage(
     });
 }
 
-function chooseVariationDesign(
-    variationIndex,
-    variationUid,
-    valueIndex,
-    valueUid
-) {
-    let picker = new MediaPicker({ type: null });
-
-    picker.on("select", ({ id, path, size }) => {
-        // Check file size (10MB = 10485760 bytes)
-        if (size && size > 10485760) {
-            toaster("File size must be less than 10MB", {
-                type: "default",
-            });
-            return;
-        }
-
-        if (!form.variations[variationIndex].values[valueIndex].design) {
-            form.variations[variationIndex].values[valueIndex].design = {};
-        }
-
-        form.variations[variationIndex].values[valueIndex].design = {
-            id: +id,
-            path,
-        };
-
-        errors.clear(`variations.${variationUid}.values.${valueUid}.design`);
-    });
-}
-
 async function addVariationRow(index, variationUid) {
     const valueUid = generateUid();
     const variation = form.variations[index];
-    
+
     const newValue = {
         uid: valueUid,
         image: {
@@ -843,14 +720,6 @@ async function addVariationRow(index, variationUid) {
             path: null,
         },
     };
-
-    // Add design field if variation type is design
-    if (variation.type === 'design') {
-        newValue.design = {
-            id: null,
-            path: null,
-        };
-    }
 
     form.variations[index].values.push(newValue);
 

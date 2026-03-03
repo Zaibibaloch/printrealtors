@@ -19,7 +19,7 @@ class Variation extends Model
      *
      * @var array
      */
-    const TYPES = ['text', 'color', 'image', 'design'];
+    const TYPES = ['text', 'color', 'image'];
 
     /**
      * The relations to eager load on every query.
@@ -33,7 +33,7 @@ class Variation extends Model
      *
      * @var array
      */
-    protected $fillable = ['uid', 'type', 'is_global', 'position', 'design_file_id'];
+    protected $fillable = ['uid', 'type', 'is_global', 'position'];
 
     /**
      * The attributes that should be cast to native types.
@@ -114,17 +114,6 @@ class Variation extends Model
     public function values(): HasMany
     {
         return $this->hasMany(VariationValue::class);
-    }
-
-
-    /**
-     * Get the design file for the variation.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function designFile(): \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(\Modules\Media\Entities\File::class, 'design_file_id');
     }
 
 

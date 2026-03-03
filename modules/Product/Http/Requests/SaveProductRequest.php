@@ -6,6 +6,7 @@ use Illuminate\Validation\Rule;
 use Modules\Option\Entities\Option;
 use Modules\Product\Entities\Product;
 use Modules\Core\Http\Requests\Request;
+use Modules\ProductBanner\Entities\ProductBanner;
 use Modules\Variation\Entities\Variation;
 use Modules\Product\Rules\DistinctProductVariationValueLabel;
 
@@ -30,6 +31,7 @@ class SaveProductRequest extends Request
             $this->getProductRules(),
             $this->getProductAttributeRules(),
             $this->getProductVariationsRules(),
+            $this->getProductBannerRules(),
             $this->getProductVariantsRules(),
             $this->getProductOptionsRules(),
         );
@@ -98,40 +100,19 @@ class SaveProductRequest extends Request
             'variations.*.values.*.label' => ['required_with:variations.*.type', new DistinctProductVariationValueLabel()],
             'variations.*.values.*.color' => ['required_if:variations.*.type,color', 'regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/'],
             'variations.*.values.*.image' => ['required_if:variations.*.type,image', 'integer', 'min:1'],
-            'variations.*.values.*.design' => [
-                'nullable',
-                function ($attribute, $value, $fail) {
-                    // Extract variation key from attribute: variations.{key}.values.{valueKey}.design
-                    if (preg_match('/variations\.([^\.]+)\.values\.([^\.]+)\.design/', $attribute, $matches)) {
-                        $variationKey = $matches[1];
-                        $variations = $this->input('variations', []);
-                        $variationType = $variations[$variationKey]['type'] ?? null;
-                        
-                        // If type is design, design is required
-                        if ($variationType === 'design') {
-                            if ($value === null || $value === '' || $value === 0) {
-                                $fail('The design field is required when variation type is design.');
-                                return;
-                            }
-                            
-                            if (!is_numeric($value) || (int)$value < 1) {
-                                $fail('The design field must be a valid file ID.');
-                                return;
-                            }
-                            
-                            $file = \Modules\Media\Entities\File::find($value);
-                            if (!$file) {
-                                $fail('The selected design file does not exist.');
-                                return;
-                            }
-                            
-                            if ($file->size > 10485760) { // 10MB in bytes
-                                $fail('The design file size must be less than 10MB.');
-                            }
-                        }
-                    }
-                },
-            ],
+        ];
+    }
+
+
+    public function getProductBannerRules(): array
+    {
+        return [
+            'product_banners.*.name' => 'required_with:product_banners.*.type',
+            'product_banners.*.type' => ['nullable', 'required_with:product_banners.*.name', Rule::in(ProductBanner::TYPES)],
+            'product_banners.*.values.*.label' => ['required_with:product_banners.*.type', 'distinct'],
+            'product_banners.*.values.*.color' => ['required_if:product_banners.*.type,color', 'regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/'],
+            'product_banners.*.values.*.image' => ['required_if:product_banners.*.type,image', 'integer', 'min:1'],
+            'product_banners.*.values.*.design' => ['required_if:product_banners.*.type,design', 'nullable', 'integer', 'min:1'],
         ];
     }
 

@@ -30,18 +30,6 @@ class SaveVariationRequest extends Request
             'values.*.label' => 'required|distinct',
             'values.*.color' => 'required_if:type,color|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
             'values.*.image' => 'required_if:type,image',
-            'values.*.design' => [
-                'required_if:type,design',
-                'nullable',
-                function ($attribute, $value, $fail) {
-                    if ($value) {
-                        $file = \Modules\Media\Entities\File::find($value);
-                        if ($file && $file->size > 10485760) { // 10MB in bytes
-                            $fail('The design file size must be less than 10MB.');
-                        }
-                    }
-                },
-            ],
         ];
     }
 

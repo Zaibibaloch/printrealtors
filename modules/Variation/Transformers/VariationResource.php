@@ -23,11 +23,6 @@ class VariationResource extends JsonResource
             'type' => $this->type,
             'is_global' => $this->is_global,
             'values' => VariationValueResource::collection($this->values->sortBy('position')),
-            'design_file' => $this->when($this->designFile, [
-                'id' => $this->designFile->id ?? null,
-                'path' => $this->designFile->path ?? null,
-                'filename' => $this->designFile->filename ?? null,
-            ]),
         ];
     }
 }

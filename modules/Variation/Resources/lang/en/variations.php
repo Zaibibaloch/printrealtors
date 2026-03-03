@@ -23,7 +23,6 @@ return [
             'text' => 'Text',
             'color' => 'Color',
             'image' => 'Image',
-            'design' => 'Design',
         ],
         'add_row' => 'Add Row',
     ],

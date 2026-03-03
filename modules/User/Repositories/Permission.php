@@ -73,7 +73,7 @@ class Permission
         $permissions = [];
 
         foreach (Module::allEnabled() as $module) {
-            $config = config('fleetcart.modules.' . strtolower($module->getName()) . '.permissions');
+            $config = config('fleetcart.modules.' . $module->get('alias') . '.permissions');
 
             if (!is_null($config)) {
                 $permissions[$module->getName()] = $config;

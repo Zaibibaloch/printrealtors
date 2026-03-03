@@ -31,7 +31,6 @@ export default class {
             text: ["id", "uid", "label"],
             color: ["id", "uid", "label", "color"],
             image: ["id", "uid", "label", "image"],
-            design: ["id", "uid", "label", "design"],
         };
 
         this.data.variations = this.data.variations
@@ -48,7 +47,39 @@ export default class {
                                 value.image = value.image?.id || null;
                             }
 
-                            if (variation.type === "design") {
+                            return { ...valueAccumulator, [value.uid]: value };
+                        },
+                        {},
+                    );
+                }
+
+                return { ...accumulator, [variation.uid]: variation };
+            }, {});
+    }
+
+    transformProductBanners() {
+        const PATHS = {
+            text: ["id", "uid", "label"],
+            color: ["id", "uid", "label", "color"],
+            image: ["id", "uid", "label", "image"],
+            design: ["id", "uid", "label", "design"],
+        };
+
+        this.data.product_banners = this.data.product_banners
+            .filter(({ name, type }) => Boolean(name) || type !== "")
+            .reduce((accumulator, productBanner) => {
+                if (productBanner.type === "") {
+                    productBanner.values = [];
+                } else {
+                    productBanner.values = productBanner.values.reduce(
+                        (valueAccumulator, value) => {
+                            value = _.pick(value, PATHS[productBanner.type]);
+
+                            if (productBanner.type === "image") {
+                                value.image = value.image?.id || null;
+                            }
+
+                            if (productBanner.type === "design") {
                                 value.design = value.design?.id || null;
                             }
 
@@ -58,7 +89,7 @@ export default class {
                     );
                 }
 
-                return { ...accumulator, [variation.uid]: variation };
+                return { ...accumulator, [productBanner.uid]: productBanner };
             }, {});
     }
 
@@ -146,6 +177,7 @@ export default class {
         this.transformAttributes();
         this.transformDownloads();
         this.transformVariations();
+        this.transformProductBanners();
         this.transformVariants();
         this.transformOptions();
 

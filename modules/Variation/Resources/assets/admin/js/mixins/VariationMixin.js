@@ -2,7 +2,6 @@ import draggable from "vuedraggable";
 import Errors from "@admin/js/Errors";
 import Coloris from "@melloware/coloris";
 import { generateUid } from "@admin/js/functions";
-import { toaster } from "@admin/js/Toaster";
 
 export default {
     components: {
@@ -45,12 +44,10 @@ export default {
                 values.forEach((value) => {
                     this.errors.clear(`values.${value.uid}.color`);
                     this.errors.clear(`values.${value.uid}.image`);
-                    this.errors.clear(`values.${value.uid}.design`);
                 });
             } else if (value === "color") {
                 values.forEach((value) => {
                     this.errors.clear(`values.${value.uid}.image`);
-                    this.errors.clear(`values.${value.uid}.design`);
                 });
 
                 this.$nextTick(() => {
@@ -59,12 +56,6 @@ export default {
             } else if (value === "image") {
                 values.forEach((value) => {
                     this.errors.clear(`values.${value.uid}.color`);
-                    this.errors.clear(`values.${value.uid}.design`);
-                });
-            } else if (value === "design") {
-                values.forEach((value) => {
-                    this.errors.clear(`values.${value.uid}.color`);
-                    this.errors.clear(`values.${value.uid}.image`);
                 });
             } else {
                 this.clearValueErrors();
@@ -82,13 +73,6 @@ export default {
                     path: null,
                 },
             };
-
-            if (this.form.type === "design") {
-                newValue.design = {
-                    id: null,
-                    path: null,
-                };
-            }
 
             values.push(newValue);
 
@@ -193,31 +177,6 @@ export default {
             });
         },
 
-        chooseDesign(index, uid) {
-            let picker = new MediaPicker({ type: null });
-
-            picker.on("select", ({ id, path, size }) => {
-                // Check file size (10MB = 10485760 bytes)
-                if (size && size > 10485760) {
-                    toaster("File size must be less than 10MB", {
-                        type: "default",
-                    });
-                    return;
-                }
-
-                this.errors.clear(`values.${uid}.design`);
-
-                if (!this.form.values[index].design) {
-                    this.form.values[index].design = {};
-                }
-
-                this.form.values[index].design = {
-                    id: +id,
-                    path,
-                };
-            });
-        },
-
         resetForm() {
             this.setFormDefaultData();
             this.focusInitialField();
@@ -257,7 +216,6 @@ export default {
                 text: ["id", "uid", "label"],
                 color: ["id", "uid", "label", "color"],
                 image: ["id", "uid", "label", "image"],
-                design: ["id", "uid", "label", "design"],
             };
 
             if (formData.type === "") {
@@ -271,8 +229,6 @@ export default {
 
                 if (formData.type === "image") {
                     value.image = value.image.id;
-                } else if (formData.type === "design") {
-                    value.design = value.design ? value.design.id : null;
                 }
 
                 return { ...accumulator, [value.uid]: value };

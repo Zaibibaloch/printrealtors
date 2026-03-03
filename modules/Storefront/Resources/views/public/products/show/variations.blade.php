@@ -22,7 +22,6 @@
                             class="
                                 {{ $variation->type === 'color' ? 'variation-color' : '' }}
                                 {{ $variation->type === 'image' ? 'variation-image' : '' }}
-                                {{ $variation->type === 'design' ? 'variation-image' : '' }}
                             "
                             :class="{
                                 active: isActiveVariationValue('{{ $variation->uid }}', '{{ $value->uid }}'),
@@ -45,10 +44,6 @@
                             @elseif ($variation->type === 'image')
                                 @if ($value->image && $value->image->path)
                                     <img src="{{ $value->image->path }}" alt="{{ $value->label }}">
-                                @endif
-                            @elseif ($variation->type === 'design')
-                                @if ($value->design && $value->design->path)
-                                    <img src="{{ $value->design->path }}" alt="{{ $value->label }}">
                                 @endif
                             @endif
                         </li>

@@ -36,7 +36,7 @@ class VariationValue extends Model
     /**
      * @var string[]
      */
-    protected $appends = ['color', 'image', 'design'];
+    protected $appends = ['color', 'image'];
 
 
     /**
@@ -58,24 +58,6 @@ class VariationValue extends Model
         }
         
         // If variation is not loaded, check if this is an image type variation value
-        if (!$this->relationLoaded('variation')) {
-            return $this->files->first() ?? null;
-        }
-        
-        return null;
-    }
-
-
-    /**
-     * @return mixed|null
-     */
-    public function getDesignAttribute(): mixed
-    {
-        if ($this->relationLoaded('variation') && $this->variation && $this->variation->type === 'design') {
-            return $this->files->first() ?? null;
-        }
-        
-        // If variation is not loaded, check if this is a design type variation value
         if (!$this->relationLoaded('variation')) {
             return $this->files->first() ?? null;
         }
@@ -115,11 +97,6 @@ class VariationValue extends Model
             ];
         }
         
-        if ($type === 'design') {
-            return [
-                'media' => [request('values.' . $this->uid . '.design')],
-            ];
-        }
     }
 
 
@@ -133,10 +110,5 @@ class VariationValue extends Model
             ];
         }
         
-        if ($type === 'design') {
-            return [
-                'media' => [request('variations.' . $this->variation->uid . '.values.' . $this->uid . '.design')],
-            ];
-        }
     }
 }
