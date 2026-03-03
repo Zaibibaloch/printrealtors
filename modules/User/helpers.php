@@ -13,6 +13,11 @@ if (!function_exists('permission_value')) {
     {
         $value = array_get($permissions, $permission);
 
+        // Handle legacy/inconsistent permission keys that may be stored with underscores.
+        if (is_null($value)) {
+            $value = array_get($permissions, str_replace('.', '_', $permission));
+        }
+
         if (is_null($value)) {
             return 0;
         } else if ($value) {
