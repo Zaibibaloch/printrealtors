@@ -110,7 +110,7 @@
                                 <div class="panel-body">
                                     <div class="new-option">
                                         <div class="row">
-                                            <div class="col-sm-6">
+                                            <div class="col-sm-5">
                                                 <div class="form-group row">
                                                     <label
                                                         :for="`product-banners-${productBanner.uid}-name`"
@@ -238,6 +238,117 @@
                                                     </span>
                                                 </div>
                                             </div>
+
+                                            <div class="col-sm-4">
+                                                <div class="form-group">
+                                                    <label
+                                                        :for="`product-banners-${productBanner.uid}-placement`"
+                                                    >
+                                                        Placement
+                                                        <span class="text-red">*</span>
+                                                    </label>
+
+                                                    <select
+                                                        :name="`product_banners.${productBanner.uid}.placement`"
+                                                        :id="`product-banners-${productBanner.uid}-placement`"
+                                                        class="form-control custom-select-black"
+                                                        v-model="productBanner.placement"
+                                                    >
+                                                        <option value="before_variations">
+                                                            Before Variations
+                                                        </option>
+                                                        <option value="after_variations">
+                                                            After Variations
+                                                        </option>
+                                                    </select>
+
+                                                    <span
+                                                        class="help-block text-red"
+                                                        v-if="
+                                                            errors.has(
+                                                                `product_banners.${productBanner.uid}.placement`
+                                                            )
+                                                        "
+                                                        v-text="
+                                                            errors.get(
+                                                                `product_banners.${productBanner.uid}.placement`
+                                                            )
+                                                        "
+                                                    >
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group row">
+                                            <div class="col-sm-6">
+                                                <label
+                                                    :for="`product-banners-${productBanner.uid}-hide-title`"
+                                                    class="control-label text-left"
+                                                >
+                                                    Hide title on storefront
+                                                </label>
+
+                                                <div class="switch m-t-5">
+                                                    <input
+                                                        type="checkbox"
+                                                        :name="`product_banners.${productBanner.uid}.hide_title`"
+                                                        :id="`product-banners-${productBanner.uid}-hide-title`"
+                                                        v-model="productBanner.hide_title"
+                                                    />
+
+                                                    <label
+                                                        :for="`product-banners-${productBanner.uid}-hide-title`"
+                                                    ></label>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-6">
+                                                <label
+                                                    :for="`product-banners-${productBanner.uid}-hide-value-labels`"
+                                                    class="control-label text-left"
+                                                >
+                                                    Hide value labels on storefront
+                                                </label>
+
+                                                <div class="switch m-t-5">
+                                                    <input
+                                                        type="checkbox"
+                                                        :name="`product_banners.${productBanner.uid}.hide_value_labels`"
+                                                        :id="`product-banners-${productBanner.uid}-hide-value-labels`"
+                                                        v-model="productBanner.hide_value_labels"
+                                                        @change="
+                                                            toggleAllProductBannerValueLabels(
+                                                                productBanner
+                                                            )
+                                                        "
+                                                    />
+
+                                                    <label
+                                                        :for="`product-banners-${productBanner.uid}-hide-value-labels`"
+                                                    ></label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group row">
+                                            <label
+                                                :for="`product-banners-${productBanner.uid}-link-url`"
+                                                class="col-sm-12 control-label text-left"
+                                            >
+                                                Click link URL (optional)
+                                            </label>
+
+                                            <div class="col-sm-12">
+                                                <input
+                                                    type="url"
+                                                    :id="`product-banners-${productBanner.uid}-link-url`"
+                                                    :name="`product_banners.${productBanner.uid}.link_url`"
+                                                    class="form-control"
+                                                    placeholder="https://example.com or YouTube URL (optional)"
+                                                    v-model="productBanner.link_url"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
 
@@ -351,23 +462,33 @@
                                                                 </span>
                                                             </td>
                                                             <td>
-                                                                <input
-                                                                    type="text"
-                                                                    :name="`product_banners.${productBanner.uid}.values.${value.uid}.label`"
-                                                                    :id="`product-banners-${productBanner.uid}-values-${value.uid}-label`"
-                                                                    class="form-control"
-                                                                    
-                                                                    @keyup.enter="
-                                                                        addProductBannerRowOnPressEnter(
-                                                                            $event,
-                                                                            index,
-                                                                            valueIndex
-                                                                        )
-                                                                    "
-                                                                    v-model="
-                                                                        value.label
-                                                                    "
-                                                                />
+                                                                <div class="input-group">
+                                                                    <span class="input-group-addon">
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            :name="`product_banners.${productBanner.uid}.values.${value.uid}.show_label`"
+                                                                            :id="`product-banners-${productBanner.uid}-values-${value.uid}-show-label`"
+                                                                            v-model="value.show_label"
+                                                                        />
+                                                                    </span>
+
+                                                                    <input
+                                                                        type="text"
+                                                                        :name="`product_banners.${productBanner.uid}.values.${value.uid}.label`"
+                                                                        :id="`product-banners-${productBanner.uid}-values-${value.uid}-label`"
+                                                                        class="form-control"
+                                                                        @keyup.enter="
+                                                                            addProductBannerRowOnPressEnter(
+                                                                                $event,
+                                                                                index,
+                                                                                valueIndex
+                                                                            )
+                                                                        "
+                                                                        v-model="
+                                                                            value.label
+                                                                        "
+                                                                    />
+                                                                </div>
 
                                                                 <span
                                                                     class="help-block text-red"
@@ -683,11 +804,17 @@ function addProductBanner({ preventFocus }) {
     form.product_banners.push({
         uid,
         type: "",
+        placement: "after_variations",
+        hide_title: false,
+        hide_value_labels: false,
+        link_url: null,
         is_global: false,
         is_open: true,
         values: [
             {
                 uid: generateUid(),
+                show_label: true,
+                link_url: null,
                 image: {
                     id: null,
                     path: null,
@@ -817,6 +944,8 @@ async function addProductBannerRow(index, productBannerUid) {
 
     const newValue = {
         uid: valueUid,
+        show_label: true,
+        link_url: form.product_banners[index].link_url || null,
         image: {
             id: null,
             path: null,
@@ -884,6 +1013,18 @@ function deleteProductBannerRow(
 
 }
 
+function toggleAllProductBannerValueLabels(productBanner) {
+    const shouldUsePerLabelControl = Boolean(productBanner.hide_value_labels);
+
+    if (shouldUsePerLabelControl) {
+        // When master toggle turns ON, start with all labels enabled (checked),
+        // then client can uncheck some labels individually.
+        productBanner.values.forEach((value) => {
+            value.show_label = true;
+        });
+    }
+}
+
 function hideColorPicker() {
     $(document).on("click", "#clr-swatches button", (e) => {
         $(e.currentTarget).parents("#clr-picker").removeClass("clr-open");
@@ -903,6 +1044,7 @@ function addGlobalProductBanner() {
 
             data.values.forEach((value) => {
                 value.uid = generateUid();
+                value.link_url = value.link_url || null;
 
                 if (!value.image) {
                     value.image = {
@@ -910,7 +1052,17 @@ function addGlobalProductBanner() {
                         path: null,
                     };
                 }
+
+                if (data.type === "design" && !value.design) {
+                    value.design = {
+                        id: null,
+                        path: null,
+                    };
+                }
             });
+
+            data.placement = data.placement || "after_variations";
+            data.hide_title = Boolean(data.hide_title);
 
             form.product_banners.push(data);
             nextTick(() => {

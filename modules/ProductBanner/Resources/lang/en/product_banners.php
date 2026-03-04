@@ -14,10 +14,18 @@ return [
     'form' => [
         'name' => 'Name',
         'type' => 'Type',
+        'placement' => 'Placement',
+        'hide_title' => 'Hide Title',
+        'hide_value_labels' => 'Hide Value Labels',
         'values' => 'Values',
         'label' => 'Label',
+        'link_url' => 'Click Link URL',
         'color' => 'Color',
         'image' => 'Image',
+        'placement_options' => [
+            'before_variations' => 'Before Variations',
+            'after_variations' => 'After Variations',
+        ],
         'product_banner_types' => [
             'please_select' => 'Please Select',
             'text' => 'Text',

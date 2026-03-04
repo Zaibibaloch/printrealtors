@@ -26,8 +26,12 @@ class SaveProductBannerRequest extends Request
         return [
             'name' => 'required',
             'type' => ['required', Rule::in(ProductBanner::TYPES)],
+            'placement' => ['nullable', Rule::in(['before_variations', 'after_variations'])],
+            'hide_title' => 'nullable|boolean',
             'values' => 'array|min:1',
             'values.*.label' => 'required|distinct',
+            'values.*.show_label' => 'nullable|boolean',
+            'values.*.link_url' => 'nullable|url|max:1000',
             'values.*.color' => 'required_if:type,color|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
             'values.*.image' => 'required_if:type,image',
             'values.*.design' => [

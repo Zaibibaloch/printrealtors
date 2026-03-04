@@ -24,7 +24,7 @@ class ProductBannerValue extends Model
      *
      * @var array
      */
-    protected $fillable = ['uid', 'value', 'position'];
+    protected $fillable = ['uid', 'value', 'link_url', 'show_label', 'position'];
 
     /**
      * The attributes that are translatable.
@@ -37,6 +37,16 @@ class ProductBannerValue extends Model
      * @var string[]
      */
     protected $appends = ['color', 'image', 'design'];
+
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'show_label' => 'boolean',
+    ];
 
 
     /**

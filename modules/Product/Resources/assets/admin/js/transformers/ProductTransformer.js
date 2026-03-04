@@ -59,10 +59,10 @@ export default class {
 
     transformProductBanners() {
         const PATHS = {
-            text: ["id", "uid", "label"],
-            color: ["id", "uid", "label", "color"],
-            image: ["id", "uid", "label", "image"],
-            design: ["id", "uid", "label", "design"],
+            text: ["id", "uid", "label", "show_label", "link_url"],
+            color: ["id", "uid", "label", "show_label", "link_url", "color"],
+            image: ["id", "uid", "label", "show_label", "link_url", "image"],
+            design: ["id", "uid", "label", "show_label", "link_url", "design"],
         };
 
         this.data.product_banners = this.data.product_banners
@@ -73,6 +73,12 @@ export default class {
                 } else {
                     productBanner.values = productBanner.values.reduce(
                         (valueAccumulator, value) => {
+                            // Keep each value's URL in sync with the banner-level URL
+                            // so the backend still receives link_url per value.
+                            if (productBanner.link_url !== undefined) {
+                                value.link_url = productBanner.link_url;
+                            }
+
                             value = _.pick(value, PATHS[productBanner.type]);
 
                             if (productBanner.type === "image") {

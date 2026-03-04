@@ -20,6 +20,8 @@ class ProductBannerValueResource extends JsonResource
             'id' => $this->id,
             'uid' => $this->uid,
             'label' => $this->label,
+            'show_label' => $this->show_label,
+            'link_url' => $this->link_url,
             'image' => $this->when(
                 condition: $this->product_banner->type === 'image',
                 value: fn () => [

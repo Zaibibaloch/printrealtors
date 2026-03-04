@@ -82,8 +82,27 @@ export function useForm() {
     function prepareProductBanners({ product_banners }) {
         product_banners.forEach((productBanner) => {
             productBanner.is_open = false;
+            productBanner.placement =
+                productBanner.placement || "after_variations";
+            productBanner.hide_title = Boolean(productBanner.hide_title);
+            productBanner.hide_value_labels = Boolean(productBanner.hide_value_labels);
+
+            // Derive banner-level link URL from first value (if any),
+            // so the product form can show a single URL field per banner.
+            productBanner.link_url =
+                productBanner.link_url ??
+                productBanner.values?.[0]?.link_url ??
+                null;
 
             productBanner.values.forEach((value) => {
+                // Default to showing labels when not explicitly set.
+                if (typeof value.show_label !== "boolean") {
+                    value.show_label = true;
+                }
+
+                // Keep values in sync with banner-level URL for consistency.
+                value.link_url = productBanner.link_url || null;
+
                 if (!value?.image?.id) {
                     value.image = {
                         id: null,

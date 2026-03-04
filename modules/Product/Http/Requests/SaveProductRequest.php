@@ -109,7 +109,11 @@ class SaveProductRequest extends Request
         return [
             'product_banners.*.name' => 'required_with:product_banners.*.type',
             'product_banners.*.type' => ['nullable', 'required_with:product_banners.*.name', Rule::in(ProductBanner::TYPES)],
+            'product_banners.*.placement' => ['nullable', Rule::in(['before_variations', 'after_variations'])],
+            'product_banners.*.hide_title' => ['nullable', 'boolean'],
             'product_banners.*.values.*.label' => ['required_with:product_banners.*.type', 'distinct'],
+            'product_banners.*.values.*.show_label' => ['nullable', 'boolean'],
+            'product_banners.*.values.*.link_url' => ['nullable', 'url', 'max:1000'],
             'product_banners.*.values.*.color' => ['required_if:product_banners.*.type,color', 'regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/'],
             'product_banners.*.values.*.image' => ['required_if:product_banners.*.type,image', 'integer', 'min:1'],
             'product_banners.*.values.*.design' => ['required_if:product_banners.*.type,design', 'nullable', 'integer', 'min:1'],

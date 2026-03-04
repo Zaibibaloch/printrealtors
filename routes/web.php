@@ -381,6 +381,10 @@ Route::get('run-product-banner-migrations', function () {
             'modules/ProductBanner/Database/Migrations/2026_02_25_110200_create_product_banner_values_table.php',
             'modules/ProductBanner/Database/Migrations/2026_02_25_110300_create_product_banner_value_translations_table.php',
             'modules/ProductBanner/Database/Migrations/2026_02_25_110400_add_design_file_id_to_product_banners_table.php',
+            'modules/ProductBanner/Database/Migrations/2026_02_26_000000_add_display_controls_to_product_banners_table.php',
+            'modules/ProductBanner/Database/Migrations/2026_02_26_000100_add_link_url_to_product_banner_values_table.php',
+            'modules/ProductBanner/Database/Migrations/2026_02_26_000200_add_show_label_to_product_banner_values_table.php',
+            'modules/ProductBanner/Database/Migrations/2026_03_03_170000_ensure_hide_value_labels_column_on_product_banners_table.php',
             // Creates product_product_banners pivot table.
             'modules/Product/Database/Migrations/2026_02_25_130000_create_product_product_banners_table.php',
             // Drops variations.design_file_id safely if it exists.

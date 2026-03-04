@@ -75,9 +75,20 @@
     </div>
 
     <div class="details-info-middle">
-        @if ($product->productBanners->isNotEmpty())
+        @php
+            $beforeVariationBanners = $product->productBanners->filter(function ($banner) {
+                return ($banner->placement ?? 'after_variations') === 'before_variations';
+            });
+
+            $afterVariationBanners = $product->productBanners->filter(function ($banner) {
+                return ($banner->placement ?? 'after_variations') !== 'before_variations';
+            });
+        @endphp
+
+        {{-- BEFORE banners: appear at the top of details-info-middle, like original behavior --}}
+        @if ($beforeVariationBanners->isNotEmpty())
             <div class="product-banners-wrap">
-                @include('storefront::public.products.show.product_banners')
+                @include('storefront::public.products.show.product_banners', ['productBanners' => $beforeVariationBanners])
             </div>
         @endif
 
@@ -109,6 +120,12 @@
             @if ($product->variant)
                 <div class="product-variants">
                     @include('storefront::public.products.show.variations')
+                </div>
+            @endif
+
+            @if ($afterVariationBanners->isNotEmpty())
+                <div class="product-banners-wrap">
+                    @include('storefront::public.products.show.product_banners', ['productBanners' => $afterVariationBanners])
                 </div>
             @endif
 

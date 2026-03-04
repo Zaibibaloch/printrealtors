@@ -21,6 +21,9 @@ class ProductBannerResource extends JsonResource
             'uid' => $this->uid,
             'name' => $this->name,
             'type' => $this->type,
+            'placement' => $this->placement ?: 'after_variations',
+            'hide_title' => (bool) $this->hide_title,
+            'hide_value_labels' => (bool) $this->hide_value_labels,
             'is_global' => $this->is_global,
             'values' => ProductBannerValueResource::collection($this->values->sortBy('position')),
             'design_file' => $this->when($this->designFile, [

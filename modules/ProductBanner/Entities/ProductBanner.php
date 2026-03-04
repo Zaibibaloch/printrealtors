@@ -33,7 +33,16 @@ class ProductBanner extends Model
      *
      * @var array
      */
-    protected $fillable = ['uid', 'type', 'is_global', 'position', 'design_file_id'];
+    protected $fillable = [
+        'uid',
+        'type',
+        'is_global',
+        'position',
+        'placement',
+        'hide_title',
+        'hide_value_labels',
+        'design_file_id',
+    ];
 
     /**
      * The attributes that should be cast to native types.
@@ -42,6 +51,8 @@ class ProductBanner extends Model
      */
     protected $casts = [
         'is_global' => 'boolean',
+        'hide_title' => 'boolean',
+        'hide_value_labels' => 'boolean',
         'deleted_at' => 'datetime'
     ];
 

@@ -77,6 +77,8 @@ export default {
 
             const newValue = {
                 uid,
+                show_label: true,
+                link_url: null,
                 image: {
                     id: null,
                     path: null,
@@ -254,10 +256,10 @@ export default {
         transformData(data) {
             const formData = JSON.parse(JSON.stringify(data));
             const PATHS = {
-                text: ["id", "uid", "label"],
-                color: ["id", "uid", "label", "color"],
-                image: ["id", "uid", "label", "image"],
-                design: ["id", "uid", "label", "design"],
+                text: ["id", "uid", "label", "link_url"],
+                color: ["id", "uid", "label", "link_url", "color"],
+                image: ["id", "uid", "label", "link_url", "image"],
+                design: ["id", "uid", "label", "link_url", "design"],
             };
 
             if (formData.type === "") {

@@ -73,6 +73,64 @@
                                     v-text="errors.get('type')"></span>
                             </div>
                         </div>
+
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label for="placement">
+                                    Placement
+                                    <span class="text-red">*</span>
+                                </label>
+
+                                <select
+                                    name="placement"
+                                    id="placement"
+                                    class="form-control custom-select-black"
+                                    v-model="form.placement"
+                                >
+                                    <option value="before_variations">
+                                        Before Variations
+                                    </option>
+                                    <option value="after_variations">
+                                        After Variations
+                                    </option>
+                                </select>
+
+                                <span
+                                    class="help-block text-red"
+                                    v-if="errors.has('placement')"
+                                    v-text="errors.get('placement')"
+                                ></span>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 m-b-10">
+                            <div class="form-group">
+                                <label class="control-label d-flex align-items-center">
+                                    <input
+                                        type="checkbox"
+                                        name="hide_title"
+                                        v-model="form.hide_title"
+                                        style="margin-right: 8px"
+                                    />
+                                    Hide title on storefront
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 m-b-10">
+                            <div class="form-group">
+                                <label class="control-label d-flex align-items-center">
+                                    <input
+                                        type="checkbox"
+                                        name="hide_value_labels"
+                                        v-model="form.hide_value_labels"
+                                        @change="toggleAllValueLabels"
+                                        style="margin-right: 8px"
+                                    />
+                                    Hide value labels on storefront
+                                </label>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -133,23 +191,59 @@
                                                 </span>
                                             </td>
                                             <td>
-                                                <input type="text" :name="`values.${element.uid}.label`"
-                                                    :id="`values-${element.uid}-label`" class="form-control"
-                                                    @keyup.enter="
-                                                        addRowOnPressEnter(
-                                                            $event,
-                                                            index
-                                                        )
-                                                        " v-model="element.label" />
+                                                <div class="input-group">
+                                                    <span class="input-group-addon">
+                                                        <input
+                                                            type="checkbox"
+                                                            :name="`values.${element.uid}.show_label`"
+                                                            :id="`values-${element.uid}-show-label`"
+                                                            v-model="element.show_label"
+                                                        />
+                                                    </span>
 
-                                                <span class="help-block text-red" v-if="
-                                                    errors.has(
-                                                        `values.${element.uid}.label`
-                                                    )
-                                                " v-text="errors.get(
-                                                        `values.${element.uid}.label`
-                                                    )
-                                                        ">
+                                                    <input
+                                                        type="text"
+                                                        :name="`values.${element.uid}.label`"
+                                                        :id="`values-${element.uid}-label`"
+                                                        class="form-control"
+                                                        @keyup.enter="
+                                                            addRowOnPressEnter(
+                                                                $event,
+                                                                index
+                                                            )
+                                                        "
+                                                        v-model="element.label"
+                                                    />
+                                                </div>
+
+                                                <span
+                                                    class="help-block text-red"
+                                                    v-if="
+                                                        errors.has(
+                                                            `values.${element.uid}.label`
+                                                        )
+                                                    "
+                                                    v-text="
+                                                        errors.get(
+                                                            `values.${element.uid}.label`
+                                                        )
+                                                    "
+                                                >
+                                                </span>
+
+                                                <input
+                                                    type="url"
+                                                    :name="`values.${element.uid}.link_url`"
+                                                    class="form-control m-t-10"
+                                                    placeholder="https://example.com or YouTube URL (optional)"
+                                                    v-model="element.link_url"
+                                                />
+
+                                                <span
+                                                    class="help-block text-red"
+                                                    v-if="errors.has(`values.${element.uid}.link_url`)"
+                                                    v-text="errors.get(`values.${element.uid}.link_url`)"
+                                                >
                                                 </span>
                                             </td>
                                             <td v-if="form.type === 'color'">
@@ -292,9 +386,16 @@ export default {
     methods: {
         prepareFormData(formData) {
             formData.uid = this.uid();
+            formData.placement = formData.placement || "after_variations";
+            formData.hide_title = Boolean(formData.hide_title);
+            formData.hide_value_labels = Boolean(formData.hide_value_labels);
 
             formData.values.forEach((value) => {
                 value.uid = this.uid();
+                if (typeof value.show_label !== "boolean") {
+                    value.show_label = true;
+                }
+                value.link_url = value.link_url || null;
 
                 if (!value.image) {
                     value.image = {
@@ -321,6 +422,16 @@ export default {
             });
 
             return formData;
+        },
+
+        toggleAllValueLabels() {
+            const shouldUsePerLabelControl = Boolean(this.form.hide_value_labels);
+
+            if (shouldUsePerLabelControl) {
+                this.form.values.forEach((value) => {
+                    value.show_label = true;
+                });
+            }
         },
 
         submit() {
