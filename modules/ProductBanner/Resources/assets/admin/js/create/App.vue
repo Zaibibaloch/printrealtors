@@ -129,32 +129,55 @@
                             </div>
                         </div>
 
-                        <div class="col-sm-6 m-b-10">
+                        <div class="col-sm-12 m-b-10">
                             <div class="form-group">
-                                <label class="control-label d-flex align-items-center">
-                                    <input
-                                        type="checkbox"
-                                        name="hide_title"
-                                        v-model="form.hide_title"
-                                        style="margin-right: 8px"
-                                    />
-                                    Hide title on storefront
+                                <label for="link_url">
+                                    Click link URL (optional)
                                 </label>
+
+                                <input
+                                    type="url"
+                                    name="link_url"
+                                    id="link_url"
+                                    class="form-control"
+                                    placeholder="https://example.com or YouTube URL (optional)"
+                                    v-model="form.link_url"
+                                />
+
+                                <span
+                                    class="help-block text-red"
+                                    v-if="errors.has('link_url')"
+                                    v-text="errors.get('link_url')"
+                                ></span>
                             </div>
                         </div>
-
-                        <div class="col-sm-6 m-b-10">
+                        <div class="col-sm-12 m-b-10">
                             <div class="form-group">
-                                <label class="control-label d-flex align-items-center">
-                                    <input
-                                        type="checkbox"
-                                        name="hide_value_labels"
-                                        v-model="form.hide_value_labels"
-                                        @change="toggleAllValueLabels"
-                                        style="margin-right: 8px"
-                                    />
-                                    Hide value labels on storefront
-                                </label>
+                                <div class="d-flex flex-wrap align-items-center">
+                                    <label
+                                        class="control-label d-flex align-items-center"
+                                        style="margin-right: 24px"
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            name="hide_title"
+                                            v-model="form.hide_title"
+                                            style="margin-right: 8px"
+                                        />
+                                        Hide title on storefront
+                                    </label>
+
+                                    <label class="control-label d-flex align-items-center">
+                                        <input
+                                            type="checkbox"
+                                            name="hide_value_labels"
+                                            v-model="form.hide_value_labels"
+                                            @change="toggleAllValueLabels"
+                                            style="margin-right: 8px"
+                                        />
+                                        Hide value labels on storefront
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -253,14 +276,6 @@
                                                     />
                                                 </div>
 
-                                                <input
-                                                    type="url"
-                                                    :name="`values.${element.uid}.link_url`"
-                                                    class="form-control m-t-10"
-                                                    placeholder="https://example.com or YouTube URL (optional)"
-                                                    v-model="element.link_url"
-                                                />
-
                                                 <span
                                                     class="help-block text-red"
                                                     v-if="
@@ -273,12 +288,6 @@
                                                             `values.${element.uid}.label`
                                                         )
                                                     "
-                                                >
-                                                </span>
-                                                <span
-                                                    class="help-block text-red"
-                                                    v-if="errors.has(`values.${element.uid}.link_url`)"
-                                                    v-text="errors.get(`values.${element.uid}.link_url`)"
                                                 >
                                                 </span>
                                             </td>
@@ -486,11 +495,10 @@ export default {
         toggleAllValueLabels() {
             const shouldUsePerLabelControl = Boolean(this.form.hide_value_labels);
 
-            if (shouldUsePerLabelControl) {
-                this.form.values.forEach((value) => {
-                    value.show_label = true;
-                });
-            }
+            this.form.values.forEach((value) => {
+                // Master OFF => uncheck all; master ON => check all.
+                value.show_label = shouldUsePerLabelControl;
+            });
         },
         setFormDefaultData() {
             this.form = {
@@ -499,10 +507,10 @@ export default {
                 placement: "after_variations",
                 hide_title: false,
                 hide_value_labels: false,
+                link_url: null,
                 values: [
                     {
                         uid: this.uid(),
-                        link_url: null,
                         image: {
                             id: null,
                             path: null,

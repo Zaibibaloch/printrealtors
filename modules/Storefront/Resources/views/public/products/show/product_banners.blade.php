@@ -3,6 +3,11 @@
         @continue
     @endif
 
+    @php
+        // Use a single banner-level URL (if any value has link_url).
+        $bannerLink = optional($productBanner->values->firstWhere('link_url', '!=', null))->link_url;
+    @endphp
+
     <div class="product-banner-block">
         @unless ($productBanner->hide_title)
             <div class="product-banner-title">
@@ -11,7 +16,19 @@
         @endunless
 
         @if (in_array($productBanner->type, ['image', 'design'], true))
+            @php
+                $bannerImages = [];
+                foreach ($productBanner->values as $v) {
+                    $m = $productBanner->type === 'design' ? ($v->design ?? null) : ($v->image ?? null);
+                    if ($m && !empty($m->path)) {
+                        $bannerImages[] = ['src' => $m->path, 'label' => $v->label ?? ''];
+                    }
+                }
+                $bannerId = 'pb-' . $productBanner->id;
+            @endphp
+
             <div class="product-banner-media-grid">
+                @php $renderIdx = 0; @endphp
                 @foreach ($productBanner->values as $value)
                     @php
                         $media = $productBanner->type === 'design' ? ($value->design ?? null) : ($value->image ?? null);
@@ -21,73 +38,59 @@
                         @continue
                     @endif
 
-                    <figure class="product-banner-media-item">
-                        @if (!empty($value->link_url))
-                            <a href="{{ $value->link_url }}" class="product-banner-link" target="_blank" rel="noopener noreferrer nofollow">
-                                <img src="{{ $media->path }}" alt="{{ $value->label ?: $productBanner->name }}" loading="lazy">
-                            </a>
-                        @else
-                            <img src="{{ $media->path }}" alt="{{ $value->label ?: $productBanner->name }}" loading="lazy">
-                        @endif
+                    <figure
+                        class="product-banner-media-item product-banner-media-item--clickable"
+                        onclick="window.pbLightboxOpen({{ $renderIdx }}, {{ json_encode($bannerImages) }})"
+                        style="cursor:zoom-in;"
+                    >
+                        <img src="{{ $media->path }}" alt="{{ $value->label ?: $productBanner->name }}" loading="lazy">
 
-                        @if (!empty($value->label) && $value->show_label)
+                        @if (!empty($value->label) && $value->show_label && !$productBanner->hide_value_labels)
                             <figcaption>{{ $value->label }}</figcaption>
                         @endif
-
-                        @if (!empty($value->link_url))
-                            <div class="product-banner-link-cta">
-                                <a href="{{ $value->link_url }}" target="_blank" rel="noopener noreferrer nofollow">
-                                    See more information
-                                </a>
-                            </div>
-                        @endif
                     </figure>
+                    @php $renderIdx++; @endphp
                 @endforeach
             </div>
+            @if (!empty($bannerLink))
+                <div class="product-banner-link-cta">
+                    <a href="{{ $bannerLink }}" target="_blank" rel="noopener noreferrer nofollow">
+                        See more information
+                    </a>
+                </div>
+            @endif
         @elseif ($productBanner->type === 'color')
             <ul class="list-inline form-custom-radio custom-selection product-banner-color-list">
                 @foreach ($productBanner->values as $value)
-                    @if (!empty($value->link_url))
-                        <li class="variation-color">
-                            <a href="{{ $value->link_url }}" class="product-banner-link" target="_blank" rel="noopener noreferrer nofollow">
-                                <div style="background-color: {{ $value->color }};"></div>
-                            </a>
-                            <div class="product-banner-link-cta">
-                                <a href="{{ $value->link_url }}" target="_blank" rel="noopener noreferrer nofollow">
-                                    See more information
-                                </a>
-                            </div>
-                        </li>
-                    @else
-                        <li class="variation-color">
-                            <div style="background-color: {{ $value->color }};"></div>
-                        </li>
-                    @endif
+                    <li class="variation-color">
+                        <div style="background-color: {{ $value->color }};"></div>
+                    </li>
                 @endforeach
             </ul>
+            @if (!empty($bannerLink))
+                <div class="product-banner-link-cta">
+                    <a href="{{ $bannerLink }}" target="_blank" rel="noopener noreferrer nofollow">
+                        See more information
+                    </a>
+                </div>
+            @endif
         @else
             <ul class="list-inline form-custom-radio custom-selection">
                 @foreach ($productBanner->values as $value)
                     <li>
-                        @if (!empty($value->link_url))
-                            <a href="{{ $value->link_url }}" class="product-banner-link" target="_blank" rel="noopener noreferrer nofollow">
-                                @if ($value->show_label)
-                                    {{ $value->label }}
-                                @endif
-                            </a>
-                            <div class="product-banner-link-cta">
-                                <a href="{{ $value->link_url }}" target="_blank" rel="noopener noreferrer nofollow">
-                                    See more information
-                                </a>
-                            </div>
-                        @else
-                            @if ($value->show_label)
-                                {{ $value->label }}
-                            @endif
+                        @if ($value->show_label && !$productBanner->hide_value_labels)
+                            {{ $value->label }}
                         @endif
                     </li>
                 @endforeach
             </ul>
+            @if (!empty($bannerLink))
+                <div class="product-banner-link-cta">
+                    <a href="{{ $bannerLink }}" target="_blank" rel="noopener noreferrer nofollow">
+                        See more information
+                    </a>
+                </div>
+            @endif
         @endif
     </div>
 @endforeach

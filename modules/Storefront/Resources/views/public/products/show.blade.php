@@ -132,3 +132,90 @@
         'modules/Storefront/Resources/assets/public/js/vendors/flatpickr.js'
     ])
 @endpush
+
+@push('scripts')
+{{-- Product Banner Lightbox --}}
+<div id="pb-lightbox" class="pb-lightbox" style="display:none;" role="dialog" aria-modal="true" aria-label="Image viewer">
+    <div class="pb-lightbox__overlay" onclick="window.pbLightboxClose()"></div>
+    <div class="pb-lightbox__dialog">
+        <button class="pb-lightbox__close" onclick="window.pbLightboxClose()" aria-label="Close">&times;</button>
+        <div class="pb-lightbox__stage">
+            <button class="pb-lightbox__nav pb-lightbox__nav--prev" onclick="window.pbLightboxNav(-1)" aria-label="Previous">&#8249;</button>
+            <div class="pb-lightbox__img-wrap">
+                <img id="pb-lightbox-img" src="" alt="" />
+                <p id="pb-lightbox-caption" style="display:none;"></p>
+            </div>
+            <button class="pb-lightbox__nav pb-lightbox__nav--next" onclick="window.pbLightboxNav(1)" aria-label="Next">&#8250;</button>
+        </div>
+        <div class="pb-lightbox__dots" id="pb-lightbox-dots"></div>
+    </div>
+</div>
+
+<script>
+(function () {
+    var lbEl      = document.getElementById('pb-lightbox');
+    var lbImg     = document.getElementById('pb-lightbox-img');
+    var lbCaption = document.getElementById('pb-lightbox-caption');
+    var lbDots    = document.getElementById('pb-lightbox-dots');
+    var images    = [];
+    var current   = 0;
+
+    function show(idx) {
+        current = (idx + images.length) % images.length;
+        lbImg.src = images[current].src;
+        lbImg.alt = images[current].label || '';
+        if (images[current].label) {
+            lbCaption.textContent = images[current].label;
+            lbCaption.style.display = 'block';
+        } else {
+            lbCaption.style.display = 'none';
+        }
+        lbDots.querySelectorAll('.pb-lightbox__dot').forEach(function (d, i) {
+            d.classList.toggle('active', i === current);
+        });
+        lbEl.querySelector('.pb-lightbox__nav--prev').style.display = images.length > 1 ? '' : 'none';
+        lbEl.querySelector('.pb-lightbox__nav--next').style.display = images.length > 1 ? '' : 'none';
+    }
+
+    window.pbLightboxOpen = function (startIdx, imgs) {
+        images  = imgs || [];
+        current = startIdx || 0;
+        lbDots.innerHTML = '';
+        if (images.length > 1) {
+            images.forEach(function (_, i) {
+                var dot = document.createElement('span');
+                dot.className = 'pb-lightbox__dot';
+                dot.onclick = function () { show(i); };
+                lbDots.appendChild(dot);
+            });
+        }
+        show(current);
+        lbEl.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    };
+
+    window.pbLightboxClose = function () {
+        lbEl.style.display = 'none';
+        document.body.style.overflow = '';
+    };
+
+    window.pbLightboxNav = function (dir) {
+        show(current + dir);
+    };
+
+    document.addEventListener('keydown', function (e) {
+        if (!lbEl || lbEl.style.display === 'none') return;
+        if (e.key === 'Escape')     window.pbLightboxClose();
+        if (e.key === 'ArrowLeft')  window.pbLightboxNav(-1);
+        if (e.key === 'ArrowRight') window.pbLightboxNav(1);
+    });
+
+    var txStart = 0;
+    lbEl.addEventListener('touchstart', function (e) { txStart = e.changedTouches[0].clientX; }, { passive: true });
+    lbEl.addEventListener('touchend', function (e) {
+        var diff = txStart - e.changedTouches[0].clientX;
+        if (Math.abs(diff) > 40) { window.pbLightboxNav(diff > 0 ? 1 : -1); }
+    });
+})();
+</script>
+@endpush

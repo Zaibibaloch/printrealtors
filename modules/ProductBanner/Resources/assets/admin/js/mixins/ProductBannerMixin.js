@@ -27,6 +27,23 @@ export default {
         this.hideColorPicker();
     },
 
+    watch: {
+        // Keep "Hide value labels on storefront" checkbox in sync with
+        // individual value checkboxes:
+        // - If at least one label checkbox is checked, keep it checked.
+        // - If all label checkboxes are unchecked, turn it off automatically.
+        'form.values': {
+            handler(values) {
+                const anyChecked = values.some((value) =>
+                    Boolean(value.show_label)
+                );
+
+                this.form.hide_value_labels = anyChecked;
+            },
+            deep: true,
+        },
+    },
+
     methods: {
         uid() {
             return generateUid();
@@ -78,7 +95,7 @@ export default {
             const newValue = {
                 uid,
                 show_label: true,
-                link_url: null,
+                link_url: this.form.link_url || null,
                 image: {
                     id: null,
                     path: null,
@@ -256,10 +273,10 @@ export default {
         transformData(data) {
             const formData = JSON.parse(JSON.stringify(data));
             const PATHS = {
-                text: ["id", "uid", "label", "link_url"],
-                color: ["id", "uid", "label", "link_url", "color"],
-                image: ["id", "uid", "label", "link_url", "image"],
-                design: ["id", "uid", "label", "link_url", "design"],
+                text: ["id", "uid", "label", "show_label", "link_url"],
+                color: ["id", "uid", "label", "show_label", "link_url", "color"],
+                image: ["id", "uid", "label", "show_label", "link_url", "image"],
+                design: ["id", "uid", "label", "show_label", "link_url", "design"],
             };
 
             if (formData.type === "") {
@@ -269,6 +286,12 @@ export default {
             }
 
             formData.values = formData.values.reduce((accumulator, value) => {
+                // Ensure each value carries the banner-level URL so validation and
+                // storefront rendering keep working as before.
+                if (formData.link_url !== undefined) {
+                    value.link_url = formData.link_url;
+                }
+
                 value = _.pick(value, PATHS[formData.type]);
 
                 if (formData.type === "image") {

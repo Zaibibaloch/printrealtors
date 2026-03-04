@@ -281,52 +281,41 @@
                                         </div>
 
                                         <div class="form-group row">
-                                            <div class="col-sm-6">
-                                                <label
-                                                    :for="`product-banners-${productBanner.uid}-hide-title`"
-                                                    class="control-label text-left"
-                                                >
-                                                    Hide title on storefront
-                                                </label>
-
-                                                <div class="switch m-t-5">
-                                                    <input
-                                                        type="checkbox"
-                                                        :name="`product_banners.${productBanner.uid}.hide_title`"
-                                                        :id="`product-banners-${productBanner.uid}-hide-title`"
-                                                        v-model="productBanner.hide_title"
-                                                    />
-
+                                            <div class="col-sm-12">
+                                                <div class="d-flex flex-wrap align-items-center">
                                                     <label
+                                                        class="control-label d-flex align-items-center"
                                                         :for="`product-banners-${productBanner.uid}-hide-title`"
-                                                    ></label>
-                                                </div>
-                                            </div>
-
-                                            <div class="col-sm-6">
-                                                <label
-                                                    :for="`product-banners-${productBanner.uid}-hide-value-labels`"
-                                                    class="control-label text-left"
-                                                >
-                                                    Hide value labels on storefront
-                                                </label>
-
-                                                <div class="switch m-t-5">
-                                                    <input
-                                                        type="checkbox"
-                                                        :name="`product_banners.${productBanner.uid}.hide_value_labels`"
-                                                        :id="`product-banners-${productBanner.uid}-hide-value-labels`"
-                                                        v-model="productBanner.hide_value_labels"
-                                                        @change="
-                                                            toggleAllProductBannerValueLabels(
-                                                                productBanner
-                                                            )
-                                                        "
-                                                    />
+                                                        style="margin-right: 24px"
+                                                    >
+                                                        <input
+                                                            type="checkbox"
+                                                            :name="`product_banners.${productBanner.uid}.hide_title`"
+                                                            :id="`product-banners-${productBanner.uid}-hide-title`"
+                                                            v-model="productBanner.hide_title"
+                                                            style="margin-right: 8px"
+                                                        />
+                                                        Hide title on storefront
+                                                    </label>
 
                                                     <label
+                                                        class="control-label d-flex align-items-center"
                                                         :for="`product-banners-${productBanner.uid}-hide-value-labels`"
-                                                    ></label>
+                                                    >
+                                                        <input
+                                                            type="checkbox"
+                                                            :name="`product_banners.${productBanner.uid}.hide_value_labels`"
+                                                            :id="`product-banners-${productBanner.uid}-hide-value-labels`"
+                                                            v-model="productBanner.hide_value_labels"
+                                                            @change="
+                                                                toggleAllProductBannerValueLabels(
+                                                                    productBanner
+                                                                )
+                                                            "
+                                                            style="margin-right: 8px"
+                                                        />
+                                                        Hide value labels on storefront
+                                                    </label>
                                                 </div>
                                             </div>
                                         </div>
@@ -794,6 +783,25 @@ const isCollapsedProductBannersAccordion = computed(() =>
     form.product_banners.every(({ is_open }) => is_open === false)
 );
 
+// Keep "Hide value labels on storefront" in sync with the per-value
+// label checkboxes, the same way as on the global Product Banner screens:
+// - If at least one label checkbox is checked for a banner, its
+//   hide_value_labels is set to true.
+// - If all label checkboxes are unchecked, hide_value_labels becomes false.
+watch(
+    () => form.product_banners,
+    (productBanners) => {
+        productBanners.forEach((productBanner) => {
+            const anyChecked = (productBanner.values || []).some((value) =>
+                Boolean(value.show_label)
+            );
+
+            productBanner.hide_value_labels = anyChecked;
+        });
+    },
+    { deep: true }
+);
+
 function reorderProductBanners() {}
 
 function reorderProductBannerValues() {}
@@ -1042,6 +1050,9 @@ function addGlobalProductBanner() {
             data.uid = generateUid();
             data.is_open = true;
 
+            // Ensure values have proper structure and capture link URL
+            // from the template so the product form's single URL field
+            // is pre-filled immediately after insert.
             data.values.forEach((value) => {
                 value.uid = generateUid();
                 value.link_url = value.link_url || null;
@@ -1060,6 +1071,9 @@ function addGlobalProductBanner() {
                     };
                 }
             });
+
+            // Derive banner-level URL from the first value, if present.
+            data.link_url = data.values?.[0]?.link_url || null;
 
             data.placement = data.placement || "after_variations";
             data.hide_title = Boolean(data.hide_title);
