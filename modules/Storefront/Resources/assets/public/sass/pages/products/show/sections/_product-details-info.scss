@@ -118,10 +118,22 @@
     }
 
     .product-banner-media-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        display: flex;
+        flex-wrap: nowrap;
         gap: 10px;
         align-items: stretch;
+        width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-bottom: 4px;
+
+        &::-webkit-scrollbar {
+            height: 6px;
+        }
+        &::-webkit-scrollbar-thumb {
+            background: var(--border-color-lite);
+            border-radius: 3px;
+        }
     }
 
     .product-banner-media-item {
@@ -130,6 +142,9 @@
         border: 1px solid var(--border-color-lite);
         border-radius: var(--radius-default);
         background: #fff;
+        flex: 1 1 0;
+        min-width: 80px;
+        max-width: 100%;
 
         img {
             width: 100%;
@@ -522,6 +537,23 @@
             flex-wrap: wrap;
             width: 100%;
 
+            /* When variation type is image: single row, auto width (same as product banners) */
+            &:has(> li.variation-image) {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                overflow-y: hidden;
+                padding: 10px 6px 8px 6px;
+                margin-top: 8px;
+
+                &::-webkit-scrollbar {
+                    height: 6px;
+                }
+                &::-webkit-scrollbar-thumb {
+                    background: var(--border-color-lite);
+                    border-radius: 3px;
+                }
+            }
+
             > li {
                 font-size: 14px;
                 height: 32px;
@@ -577,8 +609,9 @@
 
                 &.variation-image {
                     height: auto;
-                    min-width: 220px;
-                    flex: 1 1 220px;
+                    min-width: 80px;
+                    flex: 1 1 0;
+                    max-width: 100%;
                     padding: 8px;
                     background-color: #fff;
                     box-shadow: 0 0 0 1px var(--border-color-5);
