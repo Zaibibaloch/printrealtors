@@ -105,30 +105,6 @@
 
                         <div class="col-sm-12 m-b-10">
                             <div class="form-group">
-                                <label for="link_url">
-                                    Click link URL (optional)
-                                </label>
-
-                                <input
-                                    type="url"
-                                    name="link_url"
-                                    id="link_url"
-                                    class="form-control"
-                                    placeholder="https://example.com or YouTube URL (optional)"
-                                    v-model="form.link_url"
-                                />
-
-                                <span
-                                    class="help-block text-red"
-                                    v-if="errors.has('link_url')"
-                                    v-text="errors.get('link_url')"
-                                >
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="col-sm-12 m-b-10">
-                            <div class="form-group">
                                 <div class="d-flex flex-wrap align-items-center">
                                     <label
                                         class="control-label d-flex align-items-center"
@@ -255,6 +231,15 @@
                                                     "
                                                 >
                                                 </span>
+
+                                                <input
+                                                    type="url"
+                                                    :name="`values.${element.uid}.link_url`"
+                                                    :id="`values-${element.uid}-link-url`"
+                                                    class="form-control m-t-5"
+                                                    placeholder="Click link URL (optional)"
+                                                    v-model="element.link_url"
+                                                />
                                             </td>
                                             <td v-if="form.type === 'color'">
                                                 <div>
@@ -400,15 +385,12 @@ export default {
             formData.hide_title = Boolean(formData.hide_title);
             formData.hide_value_labels = Boolean(formData.hide_value_labels);
 
-            // Derive banner-level URL from first value for backward compatibility.
-            formData.link_url = formData.link_url || formData.values?.[0]?.link_url || null;
-
             formData.values.forEach((value) => {
                 value.uid = this.uid();
                 if (typeof value.show_label !== "boolean") {
                     value.show_label = true;
                 }
-                value.link_url = formData.link_url || null;
+                value.link_url = value.link_url || null;
 
                 if (!value.image) {
                     value.image = {

@@ -320,25 +320,6 @@
                                             </div>
                                         </div>
 
-                                        <div class="form-group row">
-                                            <label
-                                                :for="`product-banners-${productBanner.uid}-link-url`"
-                                                class="col-sm-12 control-label text-left"
-                                            >
-                                                Click link URL (optional)
-                                            </label>
-
-                                            <div class="col-sm-12">
-                                                <input
-                                                    type="url"
-                                                    :id="`product-banners-${productBanner.uid}-link-url`"
-                                                    :name="`product_banners.${productBanner.uid}.link_url`"
-                                                    class="form-control"
-                                                    placeholder="https://example.com or YouTube URL (optional)"
-                                                    v-model="productBanner.link_url"
-                                                />
-                                            </div>
-                                        </div>
                                     </div>
 
                                     <div
@@ -493,6 +474,15 @@
                                                                     "
                                                                 >
                                                                 </span>
+
+                                                                <input
+                                                                    type="url"
+                                                                    :name="`product_banners.${productBanner.uid}.values.${value.uid}.link_url`"
+                                                                    :id="`product-banners-${productBanner.uid}-values-${value.uid}-link-url`"
+                                                                    class="form-control m-t-5"
+                                                                    placeholder="Click link URL (optional)"
+                                                                    v-model="value.link_url"
+                                                                />
                                                             </td>
                                                             <td
                                                                 v-if="
@@ -815,7 +805,6 @@ function addProductBanner({ preventFocus }) {
         placement: "after_variations",
         hide_title: false,
         hide_value_labels: false,
-        link_url: null,
         is_global: false,
         is_open: true,
         values: [
@@ -953,7 +942,7 @@ async function addProductBannerRow(index, productBannerUid) {
     const newValue = {
         uid: valueUid,
         show_label: true,
-        link_url: form.product_banners[index].link_url || null,
+        link_url: null,
         image: {
             id: null,
             path: null,
@@ -1050,9 +1039,6 @@ function addGlobalProductBanner() {
             data.uid = generateUid();
             data.is_open = true;
 
-            // Ensure values have proper structure and capture link URL
-            // from the template so the product form's single URL field
-            // is pre-filled immediately after insert.
             data.values.forEach((value) => {
                 value.uid = generateUid();
                 value.link_url = value.link_url || null;
@@ -1071,9 +1057,6 @@ function addGlobalProductBanner() {
                     };
                 }
             });
-
-            // Derive banner-level URL from the first value, if present.
-            data.link_url = data.values?.[0]?.link_url || null;
 
             data.placement = data.placement || "after_variations";
             data.hide_title = Boolean(data.hide_title);

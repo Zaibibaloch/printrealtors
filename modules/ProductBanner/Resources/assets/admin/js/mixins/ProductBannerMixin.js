@@ -95,7 +95,7 @@ export default {
             const newValue = {
                 uid,
                 show_label: true,
-                link_url: this.form.link_url || null,
+                link_url: null,
                 image: {
                     id: null,
                     path: null,
@@ -286,12 +286,6 @@ export default {
             }
 
             formData.values = formData.values.reduce((accumulator, value) => {
-                // Ensure each value carries the banner-level URL so validation and
-                // storefront rendering keep working as before.
-                if (formData.link_url !== undefined) {
-                    value.link_url = formData.link_url;
-                }
-
                 value = _.pick(value, PATHS[formData.type]);
 
                 if (formData.type === "image") {

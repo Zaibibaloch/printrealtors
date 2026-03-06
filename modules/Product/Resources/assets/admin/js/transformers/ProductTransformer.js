@@ -73,12 +73,6 @@ export default class {
                 } else {
                     productBanner.values = productBanner.values.reduce(
                         (valueAccumulator, value) => {
-                            // Keep each value's URL in sync with the banner-level URL
-                            // so the backend still receives link_url per value.
-                            if (productBanner.link_url !== undefined) {
-                                value.link_url = productBanner.link_url;
-                            }
-
                             value = _.pick(value, PATHS[productBanner.type]);
 
                             if (productBanner.type === "image") {
