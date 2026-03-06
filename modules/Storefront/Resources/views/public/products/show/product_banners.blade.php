@@ -40,13 +40,16 @@
         @elseif ($productBanner->type === 'color')
             <ul class="list-inline form-custom-radio custom-selection product-banner-color-list">
                 @foreach ($productBanner->values as $value)
+                    @if (empty($value->color))
+                        @continue
+                    @endif
                     <li class="variation-color">
                         @if (!empty($value->link_url))
                             <a href="{{ $value->link_url }}" target="_blank" rel="noopener noreferrer nofollow" title="{{ $value->label }}" style="cursor:pointer;">
-                                <div style="background-color: {{ $value->color }};"></div>
+                                <div style="background-color: {{ $value->color }}; min-width: 40px; min-height: 40px;"></div>
                             </a>
                         @else
-                            <div style="background-color: {{ $value->color }};"></div>
+                            <div style="background-color: {{ $value->color }}; min-width: 40px; min-height: 40px;"></div>
                         @endif
                     </li>
                 @endforeach
