@@ -212,21 +212,28 @@
     }
 
     .product-banner-color-list {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 10px;
+        padding: 0;
+        margin: 0 0 8px 0;
+        list-style: none;
+
         > li {
             cursor: default;
-            margin-bottom: 6px;
-            margin-right: 8px;
+            flex-shrink: 0;
 
             div {
                 width: 40px;
                 height: 40px;
                 border-radius: 6px;
                 border: 1px solid var(--border-color-lite);
-                display: inline-block;
+                display: block;
             }
 
             a {
-                display: inline-block;
+                display: block;
                 transition: opacity 150ms ease-in-out;
 
                 &:hover {

@@ -54,6 +54,27 @@
                     </li>
                 @endforeach
             </ul>
+            
+            {{-- Show color labels (no hex code in text) --}}
+            @php
+                $colorTextItems = [];
+                foreach ($productBanner->values as $value) {
+                    if (empty($value->label) || empty($value->color)) continue;
+                    
+                    $labelText = e($value->label);
+                    
+                    if (!empty($value->link_url)) {
+                        $colorTextItems[] = '<a href="' . e($value->link_url) . '" class="product-banner-text-link" target="_blank" rel="noopener noreferrer nofollow">' . $labelText . '</a>';
+                    } elseif ($value->show_label && !$productBanner->hide_value_labels) {
+                        $colorTextItems[] = $labelText;
+                    }
+                }
+            @endphp
+            @if (!empty($colorTextItems))
+                <div class="product-banner-text-values">
+                    {!! implode('<span class="product-banner-text-sep"> , </span>', $colorTextItems) !!}
+                </div>
+            @endif
 
         @else
             @php
