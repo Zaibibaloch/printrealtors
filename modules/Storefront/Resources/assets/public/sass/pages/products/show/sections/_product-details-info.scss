@@ -536,9 +536,19 @@
             display: inline-flex;
             flex-wrap: wrap;
             width: 100%;
+            gap: 8px 10px;
+
+            /* Text/color: always 2 rows, fill by column → 4 options = 2x2, 6 = 3x2, 8 = 4x2 */
+            &:not(:has(> li.variation-image)) {
+                display: grid;
+                grid-template-rows: repeat(2, auto);
+                grid-auto-flow: column;
+                grid-auto-columns: 1fr;
+            }
 
             /* When variation type is image: single row, auto width (same as product banners) */
             &:has(> li.variation-image) {
+                display: flex;
                 flex-wrap: nowrap;
                 overflow-x: auto;
                 overflow-y: hidden;
@@ -557,10 +567,10 @@
             > li {
                 font-size: 14px;
                 height: 32px;
-                min-width: 48%;
+                min-width: 0;
                 position: relative;
                 display: flex;
-                margin: 0 10px 10px 0;
+                margin: 0;
                 padding: 6px 14px;
                 color: var(--color-gray);
                 justify-content: center;
@@ -570,8 +580,15 @@
                 overflow: hidden;
                 cursor: pointer;
 
-                &:last-child {
-                    margin-right: 0;
+                /* Text type: sized by grid column, text wraps (no stretch/truncate) */
+                &:not(.variation-color):not(.variation-image) {
+                    height: auto;
+                    min-height: 32px;
+                    min-width: 0;
+                    white-space: normal;
+                    word-wrap: break-word;
+                    overflow-wrap: break-word;
+                    text-align: center;
                 }
 
                 &:hover {
