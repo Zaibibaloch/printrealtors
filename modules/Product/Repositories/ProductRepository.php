@@ -33,6 +33,7 @@ class ProductRepository
             'variations.values.files',
             'productBanners',
             'productBanners.values',
+            'productBanners.values.product_banner',
             'productBanners.values.files',
             'variants',
             'variants.files',

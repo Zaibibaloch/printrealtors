@@ -30,7 +30,8 @@
                             <img src="{{ $media->path }}" alt="{{ $value->label ?: $productBanner->name }}" loading="lazy">
                         @endif
 
-                        @if (!empty($value->label) && $value->show_label && !$productBanner->hide_value_labels)
+                        {{-- Admin: checked = hide this label on storefront; unchecked = show this label --}}
+                        @if (!empty($value->label) && !$value->show_label && !$productBanner->hide_value_labels)
                             <figcaption>{{ $value->label }}</figcaption>
                         @endif
                     </figure>
@@ -65,7 +66,7 @@
                     
                     if (!empty($value->link_url)) {
                         $colorTextItems[] = '<a href="' . e($value->link_url) . '" class="product-banner-text-link" target="_blank" rel="noopener noreferrer nofollow">' . $labelText . '</a>';
-                    } elseif ($value->show_label && !$productBanner->hide_value_labels) {
+                    } elseif (!$value->show_label && !$productBanner->hide_value_labels) {
                         $colorTextItems[] = $labelText;
                     }
                 }
@@ -84,7 +85,7 @@
                     if (empty($value->label)) continue;
                     if (!empty($value->link_url)) {
                         $textItems[] = '<a href="' . e($value->link_url) . '" class="product-banner-text-link" target="_blank" rel="noopener noreferrer nofollow">' . e($value->label) . '</a>';
-                    } elseif ($value->show_label && !$productBanner->hide_value_labels) {
+                    } elseif (!$value->show_label && !$productBanner->hide_value_labels) {
                         $textItems[] = e($value->label);
                     }
                 }

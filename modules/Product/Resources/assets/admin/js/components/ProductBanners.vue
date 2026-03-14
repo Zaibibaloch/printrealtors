@@ -773,20 +773,18 @@ const isCollapsedProductBannersAccordion = computed(() =>
     form.product_banners.every(({ is_open }) => is_open === false)
 );
 
-// Keep "Hide value labels on storefront" in sync with the per-value
-// label checkboxes, the same way as on the global Product Banner screens:
-// - If at least one label checkbox is checked for a banner, its
-//   hide_value_labels is set to true.
-// - If all label checkboxes are unchecked, hide_value_labels becomes false.
+// Auto-sync "Hide value labels on storefront" with per-label checkboxes at runtime:
+// - When ALL per-label checkboxes are checked → auto-check "Hide value labels on storefront".
+// - When ANY per-label checkbox is unchecked → auto-uncheck "Hide value labels on storefront".
 watch(
     () => form.product_banners,
     (productBanners) => {
         productBanners.forEach((productBanner) => {
-            const anyChecked = (productBanner.values || []).some((value) =>
-                Boolean(value.show_label)
-            );
-
-            productBanner.hide_value_labels = anyChecked;
+            const values = productBanner.values || [];
+            const allChecked =
+                values.length > 0 &&
+                values.every((value) => Boolean(value.show_label));
+            productBanner.hide_value_labels = allChecked;
         });
     },
     { deep: true }

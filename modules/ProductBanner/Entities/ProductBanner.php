@@ -106,6 +106,8 @@ class ProductBanner extends Model
         foreach (array_reset_index($values) as $attributes) {
             $attributes += ['position' => ++$counter];
             $attributes += ['value' => $attributes['color'] ?? ''];
+            // Unchecked checkboxes are not sent; default to true so labels show on storefront
+            $attributes['show_label'] = array_key_exists('show_label', $attributes) ? (bool) $attributes['show_label'] : true;
 
             $this->values()->updateOrCreate(
                 [

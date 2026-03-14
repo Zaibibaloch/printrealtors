@@ -28,17 +28,16 @@ export default {
     },
 
     watch: {
-        // Keep "Hide value labels on storefront" checkbox in sync with
-        // individual value checkboxes:
-        // - If at least one label checkbox is checked, keep it checked.
-        // - If all label checkboxes are unchecked, turn it off automatically.
-        'form.values': {
+        // Auto-sync "Hide value labels on storefront" at runtime:
+        // - When ALL per-label checkboxes are checked → auto-check "Hide value labels on storefront".
+        // - When ANY per-label checkbox is unchecked → auto-uncheck "Hide value labels on storefront".
+        "form.values": {
             handler(values) {
-                const anyChecked = values.some((value) =>
-                    Boolean(value.show_label)
-                );
-
-                this.form.hide_value_labels = anyChecked;
+                const allChecked =
+                    Array.isArray(values) &&
+                    values.length > 0 &&
+                    values.every((value) => Boolean(value.show_label));
+                this.form.hide_value_labels = allChecked;
             },
             deep: true,
         },

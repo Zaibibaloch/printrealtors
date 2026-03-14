@@ -41,6 +41,7 @@ class SaveProductBanners
     private function saveProductBanners($product): void
     {
         $counter = 0;
+        $savedBannerIds = [];
 
         foreach (array_reset_index($this->productBanners()) as $attributes) {
             if ($attributes['is_global'] === true) {
@@ -49,6 +50,8 @@ class SaveProductBanners
 
             $attributes['is_global'] = false;
             $attributes['position'] = ++$counter;
+            // Unchecked checkboxes are not sent; default to false so labels show on storefront
+            $attributes['hide_value_labels'] = isset($attributes['hide_value_labels']) ? (bool) $attributes['hide_value_labels'] : false;
 
             $productBanner = $product->productBanners()->updateOrCreate(
                 ['id' => $attributes['id'] ?? null],
@@ -56,6 +59,11 @@ class SaveProductBanners
             );
 
             $productBanner->saveValues($attributes['values'] ?? []);
+            $savedBannerIds[] = $productBanner->id;
         }
+
+        // Ensure all saved banners are attached to the product (pivot); new banners created
+        // via updateOrCreate are not auto-attached by the relation.
+        $product->productBanners()->sync($savedBannerIds);
     }
 }
