@@ -5,6 +5,25 @@
         @submit.prevent
         ref="productForm"
     >
+        <div
+            v-if="form.id"
+            class="d-flex justify-content-end mb-20"
+        >
+            <a
+                class="btn btn-default"
+                :href="duplicateUrl"
+                @click="
+                    (event) => {
+                        if (!confirm('Create a duplicate copy of this product?')) {
+                            event.preventDefault();
+                        }
+                    }
+                "
+            >
+                Duplicate Product
+            </a>
+        </div>
+
         <div class="row">
             <div class="product-form-left-column col-lg-8 col-md-12">
                 <General />
@@ -102,6 +121,21 @@
         </div>
 
         <div class="page-form-footer">
+            <a
+                v-if="form.id"
+                class="btn btn-default"
+                :href="duplicateUrl"
+                @click="
+                    (event) => {
+                        if (!confirm('Create a duplicate copy of this product?')) {
+                            event.preventDefault();
+                        }
+                    }
+                "
+            >
+                Duplicate Product
+            </a>
+
             <button
                 type="button"
                 class="btn btn-default"
@@ -182,6 +216,9 @@ const {
 // Computer Properties
 const actionUrl = computed(() =>
     form.id ? `/products/${form.id}` : "/products"
+);
+const duplicateUrl = computed(() =>
+    form.id ? `/products/${form.id}/duplicate` : "#"
 );
 
 const methodAction = computed(() => (form.id ? "PUT" : "POST"));

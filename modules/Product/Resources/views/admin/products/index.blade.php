@@ -37,7 +37,8 @@
 
 @push('scripts')
     <script type="module">
-        new DataTable('#products-table .table', {
+        const selector = '#products-table .table';
+        const table = new DataTable(selector, {
             columns: [
                 { data: 'checkbox', orderable: false, searchable: false, width: '3%' },
                 { data: 'id', width: '5%' },
@@ -48,6 +49,40 @@
                 { data: 'status', name: 'is_active', searchable: false },
                 { data: 'updated', name: 'updated_at' },
             ]
+        }, function () {
+            const duplicateButton = $(`
+                <button type="button" class="btn btn-default btn-duplicate m-l-5">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="16" viewBox="0 0 14 16" fill="none">
+                        <path d="M9.33366 1.33325H3.33366C2.59728 1.33325 2.00033 1.93021 2.00033 2.66659V10.6666H3.33366V2.66659H9.33366V1.33325Z" stroke="#141B34" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M5.33366 5.33325H11.3337C12.0701 5.33325 12.667 5.93021 12.667 6.66659V13.3333C12.667 14.0696 12.0701 14.6666 11.3337 14.6666H5.33366C4.59728 14.6666 4.00033 14.0696 4.00033 13.3333V6.66659C4.00033 5.93021 4.59728 5.33325 5.33366 5.33325Z" stroke="#020010" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>{{ trans('admin::admin.buttons.duplicate') }}</span>
+                </button>
+            `).appendTo(
+                $(selector).closest(".dt-container").find(".dt-length")
+            );
+
+            duplicateButton.on('click', async () => {
+                const selectedIds = DataTable.getSelectedIds(selector);
+
+                if (!selectedIds.length) {
+                    return;
+                }
+
+                if (!confirm('{{ trans('admin::admin.duplicate.confirmation_message') }}')) {
+                    return;
+                }
+
+                try {
+                    await axios.post(`/admin/products/${selectedIds.join(',')}/duplicate`);
+                    DataTable.setSelectedIds(selector, []);
+                    DataTable.reload($(selector), null, false);
+                    toaster('Selected products duplicated successfully.', { type: 'success' });
+                } catch (e) {
+                    const message = e?.response?.data?.message || 'Failed to duplicate selected products.';
+                    toaster(message, { type: 'error' });
+                }
+            });
         });
     </script>
 @endpush

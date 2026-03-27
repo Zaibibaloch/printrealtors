@@ -29,6 +29,12 @@ Route::get('products/{id}/edit', [
     'middleware' => 'can:admin.products.edit',
 ]);
 
+Route::get('products/{id}/duplicate', [
+    'as' => 'admin.products.duplicate',
+    'uses' => 'ProductController@duplicate',
+    'middleware' => 'can:admin.products.create',
+]);
+
 Route::put('products/{id}', [
     'as' => 'admin.products.update',
     'uses' => 'ProductController@update',
@@ -39,6 +45,12 @@ Route::delete('products/{ids}', [
     'as' => 'admin.products.destroy',
     'uses' => 'ProductController@destroy',
     'middleware' => 'can:admin.products.destroy',
+]);
+
+Route::post('products/{ids}/duplicate', [
+    'as' => 'admin.products.duplicate_many',
+    'uses' => 'ProductController@duplicateMany',
+    'middleware' => 'can:admin.products.create',
 ]);
 
 Route::get('products/index/table', [

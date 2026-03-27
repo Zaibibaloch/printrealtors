@@ -11,6 +11,7 @@ return [
         'save_and_edit' => 'Save & Edit',
         'save_and_exit' => 'Save & Exit',
         'delete' => 'Delete',
+        'duplicate' => 'Duplicate',
         'cancel' => 'Cancel',
     ],
     'table' => [
@@ -39,6 +40,9 @@ return [
     'delete' => [
         'confirmation' => 'Confirmation',
         'confirmation_message' => 'Are you sure you want to delete?',
+    ],
+    'duplicate' => [
+        'confirmation_message' => 'Duplicate selected items?',
     ],
     'shortcuts' => [
         'keyboard_shortcuts' => 'Keyboard shortcuts',
