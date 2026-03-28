@@ -74,13 +74,20 @@
                 }
 
                 try {
-                    await axios.post(`/admin/products/${selectedIds.join(',')}/duplicate`);
+                    // axios.defaults.baseURL is already FleetCart.baseUrl + '/admin' — use a path relative to that
+                    await axios.post(
+                        `products/${selectedIds.join(',')}/duplicate`
+                    );
                     DataTable.setSelectedIds(selector, []);
                     DataTable.reload($(selector), null, false);
-                    toaster('Selected products duplicated successfully.', { type: 'success' });
+                    success(
+                        "{{ trans('product::products.duplicate_selected_success') }}"
+                    );
                 } catch (e) {
-                    const message = e?.response?.data?.message || 'Failed to duplicate selected products.';
-                    toaster(message, { type: 'error' });
+                    const message =
+                        e?.response?.data?.message ||
+                        "{{ trans('product::products.duplicate_selected_failed') }}";
+                    error(message);
                 }
             });
         });

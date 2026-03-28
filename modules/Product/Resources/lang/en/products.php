@@ -6,6 +6,8 @@ return [
     'save' => 'Save',
     'save_and_exit' => 'Save & Exit',
     'save_and_edit' => 'Save & Edit',
+    'duplicate_selected_success' => 'Selected products were duplicated successfully.',
+    'duplicate_selected_failed' => 'Could not duplicate the selected products.',
 
     'section' => [
         'expand_all' => 'Expand All',

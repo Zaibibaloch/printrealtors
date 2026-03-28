@@ -218,7 +218,9 @@ const actionUrl = computed(() =>
     form.id ? `/products/${form.id}` : "/products"
 );
 const duplicateUrl = computed(() =>
-    form.id ? `/products/${form.id}/duplicate` : "#"
+    form.id
+        ? `${FleetCart.baseUrl}/admin/products/${form.id}/duplicate`
+        : "#"
 );
 
 const methodAction = computed(() => (form.id ? "PUT" : "POST"));
