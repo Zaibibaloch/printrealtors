@@ -76,6 +76,24 @@
 
     <div class="details-info-middle">
         @php
+            $whatsAppProductUrl = request()->fullUrl();
+            $whatsAppOwnerPhone = '14377277511';
+
+            $whatsAppTitle = $product->name ?? '';
+            $whatsAppDescription = trim(preg_replace('/\s+/', ' ', strip_tags($product->short_description ?? '')));
+            $whatsAppDescription = mb_substr($whatsAppDescription, 0, 180);
+            $whatsAppImage =
+                $product->variant && ($product->variant->base_image->id ?? null)
+                    ? $product->variant->base_image->path ?? ''
+                    : $product->base_image->path ?? '';
+
+            // Keep message single-line so WhatsApp shows it like the screenshot,
+            // and the URL generates the rich preview (title/description/image).
+            $whatsAppMessage = "Hi I am interested in this product: {$whatsAppProductUrl}";
+            $whatsAppShareUrl = "https://wa.me/{$whatsAppOwnerPhone}?text=" . rawurlencode($whatsAppMessage);
+        @endphp
+
+        @php
             $beforeVariationBanners = $product->productBanners->filter(function ($banner) {
                 return ($banner->placement ?? 'after_variations') === 'before_variations';
             });
@@ -88,20 +106,33 @@
         {{-- BEFORE banners: appear at the top of details-info-middle, like original behavior --}}
         @if ($beforeVariationBanners->isNotEmpty())
             <div class="product-banners-wrap">
-                @include('storefront::public.products.show.product_banners', ['productBanners' => $beforeVariationBanners])
+                @include('storefront::public.products.show.product_banners', [
+                    'productBanners' => $beforeVariationBanners,
+                ])
             </div>
         @endif
 
         @if ($product->variant)
             <template x-if="isActiveItem">
-                <div class="product-price">
-                    <template x-if="hasSpecialPrice">
-                        <span class="special-price" x-text="formatCurrency(specialPrice)"></span>
-                    </template>
+                <div>
+                    <div class="product-price">
+                        <template x-if="hasSpecialPrice">
+                            <span class="special-price" x-text="formatCurrency(specialPrice)"></span>
+                        </template>
 
-                    <span class="previous-price" x-text="formatCurrency(regularPrice)">
-                        {!! $item->is_active ? ($item->hasSpecialPrice() ? $item->special_price->format() : $item->price->format()) : '' !!}
-                    </span>
+                        <span class="previous-price" x-text="formatCurrency(regularPrice)">
+                            {!! $item->is_active ? ($item->hasSpecialPrice() ? $item->special_price->format() : $item->price->format()) : '' !!}
+                        </span>
+                    </div>
+
+                    <div class="whatsapp-share">
+                        <a class="whatsapp-share-link" href="{{ $whatsAppShareUrl }}" target="_blank"
+                            rel="noopener noreferrer" aria-label="Share on WhatsApp">
+                            <img class="whatsapp-share-icon" src="{{ asset('icons/whatsapp.svg') }}" alt="WhatsApp"
+                                loading="lazy">
+
+                        </a>
+                    </div>
                 </div>
             </template>
         @else
@@ -114,6 +145,27 @@
                     {{ $item->hasSpecialPrice() ? $item->special_price->format() : $item->price->format() }}
                 </span>
             </div>
+
+            {{-- <div class="whatsapp-share">
+                <a class="whatsapp-share-link" href="{{ $whatsAppShareUrl }}" target="_blank" rel="noopener noreferrer"
+                    aria-label="Share on WhatsApp">
+                    <span class="whatsapp-share-label">For More Information:</span>
+                    <span class="whatsapp-share-cta">
+                        <img class="whatsapp-share-icon" src="{{ asset('icons/whatsapp.svg') }}" alt="WhatsApp"
+                            loading="lazy">
+                        <span class="whatsapp-share-text">WhatsApp</span>
+                    </span>
+                </a>
+            </div> --}}
+
+            <div class="whatsapp-share">
+                <a class="whatsapp-share-link" href="{{ $whatsAppShareUrl }}" target="_blank" rel="noopener noreferrer"
+                    aria-label="Share on WhatsApp">
+                    <img class="whatsapp-share-icon" src="{{ asset('icons/whatsapp.svg') }}" alt="WhatsApp"
+                        loading="lazy">
+
+                </a>
+            </div>
         @endif
 
         <form @input="errors.clear($event.target.name)" @submit.prevent="addToCart">
@@ -125,7 +177,9 @@
 
             @if ($afterVariationBanners->isNotEmpty())
                 <div class="product-banners-wrap">
-                    @include('storefront::public.products.show.product_banners', ['productBanners' => $afterVariationBanners])
+                    @include('storefront::public.products.show.product_banners', [
+                        'productBanners' => $afterVariationBanners,
+                    ])
                 </div>
             @endif
 
@@ -262,4 +316,3 @@
         @include('storefront::public.products.show.social_share')
     </div>
 </div>
-
