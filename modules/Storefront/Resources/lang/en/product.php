@@ -3,7 +3,7 @@
 return [
     'left_in_stock' => ':count left in stock',
     'in_stock' => 'In stock',
-    'out_of_stock' => 'Out of stock',
+    'out_of_stock' => 'Currently unavailable. Choose another option.',
     'wishlist' => 'Wishlist',
     'compare' => 'Compare',
     'click_to_select' => 'Click to select',

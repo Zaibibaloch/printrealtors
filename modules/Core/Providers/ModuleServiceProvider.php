@@ -34,7 +34,13 @@ class ModuleServiceProvider extends ServiceProvider
      */
     private function loadViews(Module $module)
     {
-        $this->loadViewsFrom("{$module->getPath()}/Resources/views", $module->get('alias'));
+        $viewsPath = "{$module->getPath()}/Resources/views";
+
+        if (! is_dir($viewsPath)) {
+            return;
+        }
+
+        $this->loadViewsFrom($viewsPath, $module->get('alias'));
     }
 
 
