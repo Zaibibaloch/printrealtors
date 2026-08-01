@@ -1,8 +1,8 @@
 # CI + live deploy for printrealtors.com
 #
-# Safe flow (same pattern as oreotask):
-#   1) Open PR → master     → smoke checks ONLY (live untouched)
-#   2) Merge / push master  → smoke checks MUST pass → auto deploy
+# Safe flow:
+#   1) Open PR → master     → Vite build smoke ONLY (live untouched)
+#   2) Merge / push master  → smoke MUST pass → auto deploy
 #   3) Manual run           → deploy when on master (workflow_dispatch)
 #
 # Required GitHub Secrets (Settings → Secrets and variables → Actions):
@@ -15,6 +15,7 @@
 #   - Deploy never runs on pull_request
 #   - Server .env is never overwritten
 #   - vendor / node_modules / storage uploads & logs are never overwritten
+#   - Composer is NEVER run in CI or during deploy (server vendor stays as-is)
 #   - public/build is rebuilt in CI then published (gitignored locally)
 
 name: CI Deploy
@@ -45,51 +46,18 @@ permissions:
 env:
   REMOTE_ROOT: /home/u907948652/domains/printrealtors.com/public_html
   PHP_BIN: /opt/alt/php83/usr/bin/php
-  PHP_VERSION: "8.3"
   NODE_VERSION: "22"
 
 jobs:
   # ---------------------------------------------------------------------------
-  # 1) QUALITY — smoke checks (PRs + pushes)
+  # 1) QUALITY — Vite build smoke only (no Composer)
   # ---------------------------------------------------------------------------
   smoke:
-    name: Smoke · Composer + Vite
+    name: Smoke · Vite build
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ env.PHP_VERSION }}
-          extensions: mbstring, xml, ctype, curl, zip, pdo_mysql, bcmath, fileinfo, tokenizer, gd, sodium
-          coverage: none
-          tools: composer:v2
-
-      - name: Cache Composer
-        uses: actions/cache@v4
-        with:
-          path: vendor
-          key: composer-${{ runner.os }}-${{ hashFiles('composer.json', 'modules/*/composer.json') }}
-          restore-keys: composer-${{ runner.os }}-
-
-      - name: Install Composer deps
-        run: |
-          set -euo pipefail
-          # FleetCart pins Laravel 11; Packagist may block install on known advisories.
-          # Use --global so we do NOT rewrite project composer.json (that invalidates
-          # composer.lock content-hash and drops merge-plugin module packages).
-          composer config --global audit.block-insecure false
-          composer install --no-interaction --prefer-dist --optimize-autoloader
-
-      - name: Artisan smoke
-        run: |
-          set -euo pipefail
-          cp .env.example .env
-          php artisan key:generate --force
-          php artisan about
-          php artisan route:list --columns=method,uri,name >/dev/null
 
       - name: Setup Node.js
         uses: actions/setup-node@v5
@@ -103,15 +71,15 @@ jobs:
           set -euo pipefail
           npm ci
           npm run build
+          test -d public/build
 
       - name: Summary
         if: always()
         run: |
           {
             echo "### Smoke checks"
-            echo "- PHP ${{ env.PHP_VERSION }} + Composer install"
-            echo "- Artisan about / route:list"
             echo "- Node ${{ env.NODE_VERSION }} Vite production build"
+            echo "- Composer is not run (server \`vendor/\` is left untouched)"
           } >> "$GITHUB_STEP_SUMMARY"
 
   # ---------------------------------------------------------------------------
@@ -266,7 +234,7 @@ jobs:
           echo "::error::Assets rsync failed after retries"
           exit 1
 
-      - name: Release · composer + caches + optional migrate
+      - name: Release · caches + optional migrate (no Composer)
         uses: appleboy/ssh-action@v1.2.5
         env:
           RUN_MIGRATE: ${{ github.event_name == 'workflow_dispatch' && inputs.run_migrate || true }}
@@ -287,6 +255,7 @@ jobs:
               exit 1
             fi
             echo "Keeping existing server .env (not overwritten)."
+            echo "Skipping Composer — existing server vendor/ is left untouched."
 
             mkdir -p storage/logs \
               storage/framework/cache/data \
@@ -301,19 +270,6 @@ jobs:
             chmod -R a+rX "${{ env.REMOTE_ROOT }}" || true
             chmod 755 artisan 2>/dev/null || true
             chmod -R ug+rwx storage bootstrap/cache || true
-
-            # Hostinger CLI often lacks ext-sodium; ignore only that platform req.
-            # Prefer php83 composer when available so platform matches the app.
-            COMPOSER_BIN="$(command -v composer || true)"
-            if [ -z "$COMPOSER_BIN" ]; then
-              echo "FATAL: composer not found on PATH"
-              exit 1
-            fi
-            # Prefer global so server composer.json / lock content-hash stay intact.
-            $PHP_BIN "$COMPOSER_BIN" config --global audit.block-insecure false || true
-            $PHP_BIN "$COMPOSER_BIN" install \
-              --no-dev --optimize-autoloader --no-interaction \
-              --ignore-platform-req=ext-sodium
 
             $PHP_BIN artisan up || true
             rm -f storage/framework/down storage/framework/maintenance.php || true
@@ -337,6 +293,6 @@ jobs:
             echo "- Target: \`${{ env.REMOTE_ROOT }}\`"
             echo "- URL: https://printrealtors.com"
             echo "- \`.env\` on server is never overwritten"
-            echo "- \`vendor/\` rebuilt on server via Composer"
+            echo "- \`vendor/\` is never touched (no Composer on deploy)"
             echo "- \`public/build\` published from CI Vite build"
           } >> "$GITHUB_STEP_SUMMARY"
