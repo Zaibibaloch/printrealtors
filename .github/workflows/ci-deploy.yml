@@ -151,8 +151,23 @@ jobs:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
         run: |
+          set -euo pipefail
           mkdir -p ~/.ssh
-          ssh-keyscan -p "$DEPLOY_PORT" -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+          chmod 700 ~/.ssh
+          # Hostinger keyscan is flaky from Actions; retry, then fall back to accept-new on connect.
+          ok=0
+          for attempt in 1 2 3 4 5; do
+            if ssh-keyscan -T 20 -p "$DEPLOY_PORT" "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null; then
+              ok=1
+              echo "Host key cached (attempt ${attempt})"
+              break
+            fi
+            echo "ssh-keyscan attempt ${attempt}/5 failed; retrying..."
+            sleep $((attempt * 5))
+          done
+          if [ "$ok" -ne 1 ]; then
+            echo "Warning: ssh-keyscan failed; SSH steps will use StrictHostKeyChecking=accept-new"
+          fi
 
       - name: Wait until SSH is reachable (retry)
         env:
@@ -163,7 +178,7 @@ jobs:
           set -euo pipefail
           for attempt in 1 2 3 4 5 6 7 8; do
             echo "SSH probe attempt ${attempt}/8 → ${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PORT}"
-            if ssh -p "$DEPLOY_PORT" -o StrictHostKeyChecking=yes -o ConnectTimeout=20 \
+            if ssh -p "$DEPLOY_PORT" -o StrictHostKeyChecking=accept-new -o ConnectTimeout=20 \
               "${DEPLOY_USER}@${DEPLOY_HOST}" 'echo ssh-ok'; then
               echo "SSH reachable."
               exit 0
@@ -180,7 +195,7 @@ jobs:
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
         run: |
           set -euo pipefail
-          RSYNC_SSH="ssh -p ${DEPLOY_PORT} -o StrictHostKeyChecking=yes -o ConnectTimeout=30 -o ServerAliveInterval=15"
+          RSYNC_SSH="ssh -p ${DEPLOY_PORT} -o StrictHostKeyChecking=accept-new -o ConnectTimeout=30 -o ServerAliveInterval=15"
           DEST="${DEPLOY_USER}@${DEPLOY_HOST}:${REMOTE_ROOT}"
 
           for attempt in 1 2 3 4 5; do
@@ -228,7 +243,7 @@ jobs:
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
         run: |
           set -euo pipefail
-          RSYNC_SSH="ssh -p ${DEPLOY_PORT} -o StrictHostKeyChecking=yes -o ConnectTimeout=30 -o ServerAliveInterval=15"
+          RSYNC_SSH="ssh -p ${DEPLOY_PORT} -o StrictHostKeyChecking=accept-new -o ConnectTimeout=30 -o ServerAliveInterval=15"
           DEST="${DEPLOY_USER}@${DEPLOY_HOST}:${REMOTE_ROOT}/public/build"
 
           for attempt in 1 2 3 4 5; do
