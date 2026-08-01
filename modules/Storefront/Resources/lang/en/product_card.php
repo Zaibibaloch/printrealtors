@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'out_of_stock' => 'Out of Stock',
+    'out_of_stock' => 'Currently unavailable. Choose another option.',
     'new' => 'New',
     'review' => 'Review',
     'reviews' => 'Reviews',

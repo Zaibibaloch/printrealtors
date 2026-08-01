@@ -1,19 +1,13 @@
-const staticCacheName = "pwa-v" + new Date().getTime();
+/* PrintRealtors PWA — v2 clears sticky /public redirect caches (Firefox) */
+const CACHE_VERSION = "pwa-v2-20260801";
+const staticCacheName = CACHE_VERSION;
 
-/*
-|--------------------------------------------------------------------------
-| Cache On Install
-|--------------------------------------------------------------------------
-*/
 self.addEventListener("install", (event) => {
-    this.skipWaiting();
-
+    self.skipWaiting();
     event.waitUntil(
         caches.open(staticCacheName).then((cache) => {
-            fetch("/build/manifest.json")
-                .then((response) => {
-                    return response.json();
-                })
+            return fetch("/build/manifest.json")
+                .then((response) => response.json())
                 .then((assets) => {
                     const filesToCache = [
                         "/offline",
@@ -39,47 +33,50 @@ self.addEventListener("install", (event) => {
                         "/pwa/icons/384x384.png",
                         "/pwa/icons/512x512.png",
                     ];
-
                     return cache.addAll(filesToCache);
-                });
+                })
+                .catch(() => undefined);
         })
     );
 });
 
-/*
-|--------------------------------------------------------------------------
-| Clear Cache On Activate
-|--------------------------------------------------------------------------
-*/
 self.addEventListener("activate", (event) => {
     event.waitUntil(
-        caches.keys().then((cacheNames) => {
-            return Promise.all(
-                cacheNames
-                    .filter((cacheName) => cacheName.startsWith("pwa-"))
-                    .filter((cacheName) => cacheName !== staticCacheName)
-                    .map((cacheName) => caches.delete(cacheName))
-            );
-        })
-    );
-});
-
-/*
-|--------------------------------------------------------------------------
-| Serve From Cache
-|--------------------------------------------------------------------------
-*/
-self.addEventListener("fetch", (event) => {
-    event.respondWith(
         caches
-            .match(event.request)
-            .then((response) => {
-                return response || fetch(event.request);
-            })
-            .catch(() => {
-                return caches.match("offline");
-            })
+            .keys()
+            .then((cacheNames) =>
+                Promise.all(
+                    cacheNames
+                        .filter((cacheName) => cacheName !== staticCacheName)
+                        .map((cacheName) => caches.delete(cacheName))
+                )
+            )
+            .then(() => self.clients.claim())
     );
 });
 
-const pwaVersion = 1769402468;
+self.addEventListener("fetch", (event) => {
+    const request = event.request;
+    const url = new URL(request.url);
+
+    // Never keep users on /public — send them to the clean site URL
+    if (url.origin === self.location.origin && url.pathname.startsWith("/public")) {
+        const cleanPath = url.pathname.replace(/^\/public/, "") || "/";
+        event.respondWith(Response.redirect(url.origin + cleanPath + url.search, 302));
+        return;
+    }
+
+    // Navigations: always network-first so old redirect responses are not reused
+    if (request.mode === "navigate") {
+        event.respondWith(
+            fetch(request).catch(() => caches.match("/offline"))
+        );
+        return;
+    }
+
+    event.respondWith(
+        caches.match(request).then((response) => {
+            return response || fetch(request);
+        }).catch(() => caches.match("/offline"))
+    );
+});
