@@ -1,12 +1,9 @@
 # CI + live deploy for printrealtors.com
 #
 # Safe flow:
-#   1) Open PR → master     → lightweight checks ONLY (live untouched)
-#   2) Merge / push master  → auto deploy (rsync + cache clear)
+#   1) Open PR → master     → Vite build smoke ONLY (live untouched)
+#   2) Merge / push master  → smoke MUST pass → auto deploy (npm run build every time)
 #   3) Manual run           → deploy when on master (workflow_dispatch)
-#
-# Note: Composer is never run. Vite rebuild is optional (default: reuse server public/build)
-# because package-lock is often out of sync with workspaces.
 #
 # Required GitHub Secrets (Settings → Secrets and variables → Actions):
 #   DEPLOY_HOST     = 85.31.227.160
@@ -19,7 +16,7 @@
 #   - Server .env is never overwritten
 #   - vendor / node_modules / storage uploads & logs are never overwritten
 #   - Composer is NEVER run in CI or during deploy (server vendor stays as-is)
-#   - public/build stays on server unless workflow_dispatch rebuild_assets=true
+#   - Every deploy runs npm install + npm run build, then uploads public/build
 
 name: CI Deploy
 
@@ -30,8 +27,8 @@ on:
     branches: [master]
   workflow_dispatch:
     inputs:
-      rebuild_assets:
-        description: Rebuild Vite assets in CI and upload public/build
+      skip_build:
+        description: Skip Vite build and reuse server assets (emergency only)
         type: boolean
         default: false
       run_migrate:
@@ -53,30 +50,37 @@ env:
 
 jobs:
   # ---------------------------------------------------------------------------
-  # 1) QUALITY — lightweight gate (no Composer, no Vite)
+  # 1) QUALITY — Vite build smoke (no Composer)
   # ---------------------------------------------------------------------------
   smoke:
-    name: Smoke · checkout
+    name: Smoke · Vite build
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v5
 
-      - name: Sanity
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: npm install + npm run build
         run: |
           set -euo pipefail
-          test -f artisan
-          test -f .github/workflows/ci-deploy.yml
-          echo "Smoke OK (Composer/Vite not required)."
+          # package-lock can drift from workspaces; npm install (not ci) keeps builds reliable
+          npm install --no-audit --no-fund
+          npm run build
+          test -d public/build
 
       - name: Summary
         if: always()
         run: |
           {
             echo "### Smoke checks"
-            echo "- Repo checkout + artisan present"
+            echo "- Node ${{ env.NODE_VERSION }}: \`npm install\` + \`npm run build\`"
             echo "- Composer is not run"
-            echo "- Vite rebuild is optional on deploy (default: keep server public/build)"
           } >> "$GITHUB_STEP_SUMMARY"
 
   # ---------------------------------------------------------------------------
@@ -113,18 +117,18 @@ jobs:
           echo "Deploy secrets present."
 
       - name: Setup Node.js
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.rebuild_assets }}
+        if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.skip_build) }}
         uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
           cache-dependency-path: package-lock.json
 
-      - name: Build frontend assets (manual only)
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.rebuild_assets }}
+      - name: npm install + npm run build
+        if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.skip_build) }}
         run: |
           set -euo pipefail
-          npm install
+          npm install --no-audit --no-fund
           npm run build
           test -d public/build
           echo "Vite build ready:"
@@ -210,7 +214,7 @@ jobs:
           exit 1
 
       - name: Upload Vite build → public/build
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.rebuild_assets }}
+        if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.skip_build) }}
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
@@ -291,5 +295,5 @@ jobs:
             echo "- URL: https://printrealtors.com"
             echo "- \`.env\` on server is never overwritten"
             echo "- \`vendor/\` is never touched (no Composer on deploy)"
-            echo "- \`public/build\` kept on server unless manual \`rebuild_assets\` is enabled"
+            echo "- \`npm run build\` runs every deploy; \`public/build\` uploaded from CI"
           } >> "$GITHUB_STEP_SUMMARY"
