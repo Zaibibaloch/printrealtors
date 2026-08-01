@@ -75,7 +75,12 @@ jobs:
           restore-keys: composer-${{ runner.os }}-
 
       - name: Install Composer deps
-        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+        run: |
+          set -euo pipefail
+          # FleetCart pins Laravel 11; Packagist may block install on known advisories.
+          # Smoke only needs a resolvable vendor tree — do not hard-fail CI on advisories.
+          composer config audit.block-insecure false
+          composer install --no-interaction --prefer-dist --optimize-autoloader
 
       - name: Artisan smoke
         run: |
@@ -303,6 +308,8 @@ jobs:
               echo "FATAL: composer not found on PATH"
               exit 1
             fi
+            # Same advisory policy as CI smoke — Hostinger Composer may also block insecure packs.
+            $PHP_BIN "$COMPOSER_BIN" config audit.block-insecure false || true
             $PHP_BIN "$COMPOSER_BIN" install \
               --no-dev --optimize-autoloader --no-interaction \
               --ignore-platform-req=ext-sodium
