@@ -4,6 +4,7 @@
 .idea/
 .github/*
 !.github/workflows/
+!.github/workflows/**
 .phpintel/
 *.sublime-project
 .DS_Store
@@ -38,3 +39,6 @@ vite.config.js.*
 *.lock
 composer.lock
 yarn.lock
+
+#Deploy
+.deploy-keys/

@@ -1,0 +1,334 @@
+# CI + live deploy for printrealtors.com
+#
+# Safe flow (same pattern as oreotask):
+#   1) Open PR → master     → smoke checks ONLY (live untouched)
+#   2) Merge / push master  → smoke checks MUST pass → auto deploy
+#   3) Manual run           → deploy when on master (workflow_dispatch)
+#
+# Required GitHub Secrets (Settings → Secrets and variables → Actions):
+#   DEPLOY_HOST     = 85.31.227.160
+#   DEPLOY_PORT     = 65002
+#   DEPLOY_USER     = u907948652
+#   DEPLOY_SSH_KEY  = private key (from .deploy-keys/printrealtors_gha_ed25519)
+#
+# Safety:
+#   - Deploy never runs on pull_request
+#   - Server .env is never overwritten
+#   - vendor / node_modules / storage uploads & logs are never overwritten
+#   - public/build is rebuilt in CI then published (gitignored locally)
+
+name: CI Deploy
+
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+  workflow_dispatch:
+    inputs:
+      skip_build:
+        description: Skip Vite build and reuse server assets (emergency only)
+        type: boolean
+        default: false
+      run_migrate:
+        description: Run php artisan migrate --force after deploy
+        type: boolean
+        default: true
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  REMOTE_ROOT: /home/u907948652/domains/printrealtors.com/public_html
+  PHP_BIN: /opt/alt/php83/usr/bin/php
+  PHP_VERSION: "8.3"
+  NODE_VERSION: "22"
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # 1) QUALITY — smoke checks (PRs + pushes)
+  # ---------------------------------------------------------------------------
+  smoke:
+    name: Smoke · Composer + Vite
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, xml, ctype, curl, zip, pdo_mysql, bcmath, fileinfo, tokenizer, gd, sodium
+          coverage: none
+          tools: composer:v2
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.json', 'modules/*/composer.json') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - name: Install Composer deps
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Artisan smoke
+        run: |
+          set -euo pipefail
+          cp .env.example .env
+          php artisan key:generate --force
+          php artisan about
+          php artisan route:list --columns=method,uri,name >/dev/null
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install npm deps + production build smoke
+        run: |
+          set -euo pipefail
+          npm ci
+          npm run build
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### Smoke checks"
+            echo "- PHP ${{ env.PHP_VERSION }} + Composer install"
+            echo "- Artisan about / route:list"
+            echo "- Node ${{ env.NODE_VERSION }} Vite production build"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # ---------------------------------------------------------------------------
+  # 2) DEPLOY — only on master push / manual (never on PR)
+  # ---------------------------------------------------------------------------
+  deploy:
+    name: Deploy · printrealtors.com
+    needs: [smoke]
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    if: >
+      github.ref == 'refs/heads/master' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Verify deploy secrets
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          ok=1
+          [ -n "${DEPLOY_HOST:-}" ] || { echo "Missing secret: DEPLOY_HOST"; ok=0; }
+          [ -n "${DEPLOY_PORT:-}" ] || { echo "Missing secret: DEPLOY_PORT"; ok=0; }
+          [ -n "${DEPLOY_USER:-}" ] || { echo "Missing secret: DEPLOY_USER"; ok=0; }
+          [ -n "${DEPLOY_SSH_KEY:-}" ] || { echo "Missing secret: DEPLOY_SSH_KEY"; ok=0; }
+          if [ "$ok" -ne 1 ]; then
+            echo "Add secrets in GitHub → Settings → Secrets and variables → Actions"
+            exit 1
+          fi
+          echo "Deploy secrets present."
+
+      - name: Setup Node.js
+        if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.skip_build) }}
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Build frontend assets
+        if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.skip_build) }}
+        run: |
+          set -euo pipefail
+          npm ci
+          npm run build
+          test -d public/build
+          echo "Vite build ready:"
+          find public/build -maxdepth 2 | head -40
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.10.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
+
+      - name: Trust host key
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -p "$DEPLOY_PORT" -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+
+      - name: Wait until SSH is reachable (retry)
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3 4 5 6 7 8; do
+            echo "SSH probe attempt ${attempt}/8 → ${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PORT}"
+            if ssh -p "$DEPLOY_PORT" -o StrictHostKeyChecking=yes -o ConnectTimeout=20 \
+              "${DEPLOY_USER}@${DEPLOY_HOST}" 'echo ssh-ok'; then
+              echo "SSH reachable."
+              exit 0
+            fi
+            sleep $((attempt * 15))
+          done
+          echo "::error::Hostinger SSH timed out from GitHub Actions. Re-run workflow, or check hPanel → Advanced → SSH Access."
+          exit 1
+
+      - name: Upload application code (never touch .env / vendor / storage)
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          RSYNC_SSH="ssh -p ${DEPLOY_PORT} -o StrictHostKeyChecking=yes -o ConnectTimeout=30 -o ServerAliveInterval=15"
+          DEST="${DEPLOY_USER}@${DEPLOY_HOST}:${REMOTE_ROOT}"
+
+          for attempt in 1 2 3 4 5; do
+            echo "Code rsync attempt ${attempt}/5"
+            if rsync -az \
+              --exclude '.env' \
+              --exclude '.env.*' \
+              --exclude 'vendor/' \
+              --exclude 'node_modules/' \
+              --exclude '.git/' \
+              --exclude '.deploy-keys/' \
+              --exclude 'storage/logs/' \
+              --exclude 'storage/framework/cache/' \
+              --exclude 'storage/framework/sessions/' \
+              --exclude 'storage/framework/views/' \
+              --exclude 'storage/framework/down' \
+              --exclude 'storage/framework/maintenance.php' \
+              --exclude 'storage/app/' \
+              --exclude 'public/storage/' \
+              --exclude 'public/build/' \
+              --exclude 'public/build-old/' \
+              --exclude 'public/new-build/' \
+              --exclude 'public/build.zip' \
+              --exclude 'public/hot' \
+              --exclude 'public/pwa/' \
+              --exclude 'public/sitemaps/' \
+              --exclude 'public/sitemap.xml' \
+              --exclude '.DS_Store' \
+              --exclude '*.log' \
+              -e "$RSYNC_SSH" \
+              ./ "${DEST}/"; then
+              echo "Code deploy OK"
+              exit 0
+            fi
+            sleep $((attempt * 20))
+          done
+          echo "::error::Code rsync failed after retries"
+          exit 1
+
+      - name: Upload Vite build → public/build
+        if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.skip_build) }}
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          RSYNC_SSH="ssh -p ${DEPLOY_PORT} -o StrictHostKeyChecking=yes -o ConnectTimeout=30 -o ServerAliveInterval=15"
+          DEST="${DEPLOY_USER}@${DEPLOY_HOST}:${REMOTE_ROOT}/public/build"
+
+          for attempt in 1 2 3 4 5; do
+            echo "Assets rsync attempt ${attempt}/5"
+            if rsync -az --delete -e "$RSYNC_SSH" public/build/ "${DEST}/"; then
+              echo "Assets deploy OK"
+              exit 0
+            fi
+            sleep $((attempt * 20))
+          done
+          echo "::error::Assets rsync failed after retries"
+          exit 1
+
+      - name: Release · composer + caches + optional migrate
+        uses: appleboy/ssh-action@v1.2.5
+        env:
+          RUN_MIGRATE: ${{ github.event_name == 'workflow_dispatch' && inputs.run_migrate || true }}
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          port: ${{ secrets.DEPLOY_PORT }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script_stop: true
+          envs: RUN_MIGRATE
+          script: |
+            set -euo pipefail
+            cd ${{ env.REMOTE_ROOT }}
+            PHP_BIN="${{ env.PHP_BIN }}"
+
+            if [ ! -f .env ]; then
+              echo "FATAL: production .env missing — refusing to invent one. Create it once on the server."
+              exit 1
+            fi
+            echo "Keeping existing server .env (not overwritten)."
+
+            mkdir -p storage/logs \
+              storage/framework/cache/data \
+              storage/framework/sessions \
+              storage/framework/views \
+              storage/app/public \
+              bootstrap/cache \
+              public/build
+
+            # Hostinger LiteSpeed cannot read 0700 public_html (causes redirect loops / fake 404s)
+            chmod 755 "${{ env.REMOTE_ROOT }}" "$(dirname "${{ env.REMOTE_ROOT }}")" || true
+            chmod -R a+rX "${{ env.REMOTE_ROOT }}" || true
+            chmod 755 artisan 2>/dev/null || true
+            chmod -R ug+rwx storage bootstrap/cache || true
+
+            # Hostinger CLI often lacks ext-sodium; ignore only that platform req.
+            # Prefer php83 composer when available so platform matches the app.
+            COMPOSER_BIN="$(command -v composer || true)"
+            if [ -z "$COMPOSER_BIN" ]; then
+              echo "FATAL: composer not found on PATH"
+              exit 1
+            fi
+            $PHP_BIN "$COMPOSER_BIN" install \
+              --no-dev --optimize-autoloader --no-interaction \
+              --ignore-platform-req=ext-sodium
+
+            $PHP_BIN artisan up || true
+            rm -f storage/framework/down storage/framework/maintenance.php || true
+
+            if [ "${RUN_MIGRATE:-true}" = "true" ] || [ "${RUN_MIGRATE:-true}" = "True" ] || [ "${RUN_MIGRATE:-true}" = "1" ]; then
+              $PHP_BIN artisan migrate --force
+            else
+              echo "Skipping migrations."
+            fi
+
+            $PHP_BIN artisan optimize:clear
+            $PHP_BIN artisan storage:link || true
+            chmod -R ug+rwx storage bootstrap/cache || true
+
+            echo "Deploy OK: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+      - name: Summary
+        run: |
+          {
+            echo "### Deploy"
+            echo "- Target: \`${{ env.REMOTE_ROOT }}\`"
+            echo "- URL: https://printrealtors.com"
+            echo "- \`.env\` on server is never overwritten"
+            echo "- \`vendor/\` rebuilt on server via Composer"
+            echo "- \`public/build\` published from CI Vite build"
+          } >> "$GITHUB_STEP_SUMMARY"

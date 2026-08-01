@@ -17,10 +17,8 @@
         Options -MultiViews -Indexes
     </IfModule>
 
-    # Remove trailing slashes from non-directories
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteCond %{REQUEST_URI} (.+)/$
-    RewriteRule ^ %1 [L,R=301]
+    # Do NOT externally strip trailing slashes.
+    # On Hostinger that fights DirectorySlash and causes /public ↔ /public/ loops.
 
     # Route non-files and non-directories to index.php
     RewriteCond %{REQUEST_FILENAME} !-d
