@@ -206,6 +206,9 @@ jobs:
               --exclude 'vendor/' \
               --exclude 'node_modules/' \
               --exclude '.git/' \
+              --exclude '.github/' \
+              --exclude '.gitignore' \
+              --exclude '.gitattributes' \
               --exclude '.deploy-keys/' \
               --exclude 'storage/logs/' \
               --exclude 'storage/framework/cache/' \

@@ -1,6 +1,9 @@
 DirectorySlash Off
 DirectoryIndex index.php
 
+# Block VCS / CI metadata if ever present under docroot
+RedirectMatch 404 (?i)/\.(git|github)(/|$)
+
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
