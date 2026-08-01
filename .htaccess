@@ -8,13 +8,14 @@ DirectoryIndex index.php
     RewriteCond %{THE_REQUEST} \s/+public(?:/[^\s]*)?\s [NC]
     RewriteRule ^public(?:/(.*))?$ /$1 [R=302,L]
 
-    # Serve real files/dirs from public/ without root symlinks
-    # (e.g. /build/*, /icons/*, /pwa/*, /storage/*, favicon, robots, serviceworker)
+    # Serve real files/dirs from public/ without root symlinks.
+    # Use REQUEST_URI (not $1) so LiteSpeed/Apache both resolve the path.
+    RewriteCond %{REQUEST_URI} !^/public/
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteCond %{DOCUMENT_ROOT}/public/$1 -f [OR]
-    RewriteCond %{DOCUMENT_ROOT}/public/$1 -d
-    RewriteRule ^(.*)$ public/$1 [L]
+    RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -f [OR]
+    RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -d
+    RewriteRule ^ public%{REQUEST_URI} [L]
 
     # Everything else → Laravel front controller (root index.php boots public/index.php)
     RewriteCond %{REQUEST_FILENAME} !-f
