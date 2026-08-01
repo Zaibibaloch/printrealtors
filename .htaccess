@@ -4,13 +4,19 @@ DirectoryIndex index.php
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Never keep the browser on /public (302 = not sticky in Firefox)
+    # Keep browser URLs clean: /public/... → /...
+    RewriteCond %{THE_REQUEST} \s/+public(?:/[^\s]*)?\s [NC]
     RewriteRule ^public(?:/(.*))?$ /$1 [R=302,L]
 
-    # Media URL /storage/* lives in public/storage (Laravel public disk)
-    RewriteRule ^storage/(.*)$ public/storage/$1 [L]
+    # Serve real files/dirs from public/ without root symlinks
+    # (e.g. /build/*, /icons/*, /pwa/*, /storage/*, favicon, robots, serviceworker)
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{DOCUMENT_ROOT}/public/$1 -f [OR]
+    RewriteCond %{DOCUMENT_ROOT}/public/$1 -d
+    RewriteRule ^(.*)$ public/$1 [L]
 
-    # Real files at docroot (build/pwa/... symlinks) are served as-is.
+    # Everything else → Laravel front controller (root index.php boots public/index.php)
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^ index.php [L]
