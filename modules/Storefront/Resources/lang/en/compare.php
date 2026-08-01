@@ -8,7 +8,7 @@ return [
     'rating' => 'Rating',
     'availability' => 'Availability',
     'in_stock' => 'In Stock',
-    'out_of_stock' => 'Out of Stock',
+    'out_of_stock' => 'Currently unavailable. Choose another option.',
     'price' => 'Price',
     'actions' => 'Actions',
     'add_to_cart' => 'Add to Cart',

@@ -1,11 +1,17 @@
-RewriteEngine on
+DirectorySlash Off
+DirectoryIndex index.php
 
-# Redirect Trailing Slashes If Not A Folder...
-# 302 (temporary) — Firefox permanently caches 301 and caused the stuck redirect error
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteCond %{REQUEST_URI} (.+)/$
-RewriteRule ^ %1 [L,R=302]
+<IfModule mod_rewrite.c>
+    RewriteEngine On
 
-RewriteCond %{REQUEST_URI} !^public
+    # Never keep the browser on /public (302 = not sticky in Firefox)
+    RewriteRule ^public(?:/(.*))?$ /$1 [R=302,L]
 
-RewriteRule ^(.*)$ public/$1 [L]
+    # Media URL /storage/* lives in public/storage (Laravel public disk)
+    RewriteRule ^storage/(.*)$ public/storage/$1 [L]
+
+    # Real files at docroot (build/pwa/... symlinks) are served as-is.
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [L]
+</IfModule>

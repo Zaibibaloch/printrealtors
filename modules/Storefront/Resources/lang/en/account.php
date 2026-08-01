@@ -66,7 +66,7 @@ return [
         'price' => 'Price',
         'availability' => 'Availability',
         'in_stock' => 'In Stock',
-        'out_of_stock' => 'Out of Stock',
+        'out_of_stock' => 'Currently unavailable. Choose another option.',
         'add_to_cart' => 'Add to Cart',
         'delete' => 'Delete',
         'empty_wishlist' => 'Your wishlist is empty.',
