@@ -16,7 +16,8 @@
 #   - Server .env is never overwritten
 #   - vendor / node_modules / storage uploads & logs are never overwritten
 #   - Composer is NEVER run in CI or during deploy (server vendor stays as-is)
-#   - Every deploy runs npm install + npm run build, then uploads public/build
+#   - Every deploy requires smoke \`npm run build\`; artifact is uploaded to public/build
+#   - Emergency: workflow_dispatch skip_build=true reuses server public/build
 
 name: CI Deploy
 
@@ -73,6 +74,14 @@ jobs:
           npm install --no-audit --no-fund
           npm run build
           test -d public/build
+          test -f public/build/manifest.json
+
+      - name: Upload Vite build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-build
+          path: public/build
+          retention-days: 2
 
       - name: Summary
         if: always()
@@ -116,23 +125,21 @@ jobs:
           fi
           echo "Deploy secrets present."
 
-      - name: Setup Node.js
+      - name: Download Vite build from smoke
         if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.skip_build) }}
-        uses: actions/setup-node@v5
+        uses: actions/download-artifact@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-          cache-dependency-path: package-lock.json
+          name: public-build
+          path: public/build
 
-      - name: npm install + npm run build
+      - name: Verify Vite build present
         if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.skip_build) }}
         run: |
           set -euo pipefail
-          npm install --no-audit --no-fund
-          npm run build
           test -d public/build
-          echo "Vite build ready:"
-          find public/build -maxdepth 2 | head -40
+          test -f public/build/manifest.json
+          echo "Vite build ready for upload:"
+          ls public/build | head -20 || true
 
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.10.0
@@ -295,5 +302,5 @@ jobs:
             echo "- URL: https://printrealtors.com"
             echo "- \`.env\` on server is never overwritten"
             echo "- \`vendor/\` is never touched (no Composer on deploy)"
-            echo "- \`npm run build\` runs every deploy; \`public/build\` uploaded from CI"
+            echo "- \`npm run build\` runs every deploy (smoke); \`public/build\` uploaded to live"
           } >> "$GITHUB_STEP_SUMMARY"
